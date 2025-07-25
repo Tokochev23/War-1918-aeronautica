@@ -102,6 +102,9 @@ const gameData = {
             dive_brakes: { name: "Freios de Mergulho", cost: 8000, weight: 50, metal_cost: 100 },
             sirens: { name: "Sirenes Psicológicas", cost: 2000, weight: 10, metal_cost: 20 },
             jato: { name: "Foguetes Auxiliares (JATO)", cost: 30000, weight: 120, metal_cost: 200 },
+            extra_fuel_tanks: { name: "Tanques de Combustíveis Extras (Fixos)", cost: 8000, weight: 40, metal_cost: 150, range_mod: 1.4, maneuverability_mod: 0.9, description: "Aumenta o alcance com tanques internos maiores, mas o peso extra permanente prejudica a agilidade." },
+            drop_tanks: { name: "Tanques de Combustíveis Descartáveis", cost: 12000, weight: 20, metal_cost: 200, range_mod: 1.8, description: "Aumenta drasticamente o alcance. Os tanques são descartados antes do combate, não afetando a performance. Impede o uso de bombas ou foguetes." },
+            advanced_control_surfaces: { name: "Superfícies de Controle Avançadas", cost: 40000, weight: 50, metal_cost: 300, maneuverability_mod: 1.25, reliability_mod: 0.98, description: "Ailerons e profundores otimizados que permitem taxas de rolagem e curvas mais rápidas, ao custo de estabilidade e maior complexidade." },
         }
     },
     constants: {
@@ -112,7 +115,7 @@ const gameData = {
         pressure_sea_level_pa: 101325,
         density_sea_level_kg_m3: 1.225,
         turn_g_force: 4.5, // Fator G estrutural médio para caças
-        base_fuel_capacity_liters: 400,
+        base_fuel_capacity_liters: 380, // Reduzido para balancear o alcance
         country_cost_reduction_factor: 0.25,
         urbanization_cost_reduction_factor: 0.20,
         max_tech_civil_level: 150,
@@ -149,7 +152,7 @@ function getAirPropertiesAtAltitude(h) {
     const R = gameData.constants.gas_constant_air_specific;
     const g = gameData.constants.standard_gravity_ms2;
 
-    const T = T0 - L * h;
+    const T = Math.max(216.65, T0 - L * h); // Evita temperaturas abaixo da tropopausa
     const P = P0 * Math.pow((T / T0), g / (L * R));
     const rho = P / (R * T);
     
@@ -157,17 +160,13 @@ function getAirPropertiesAtAltitude(h) {
 }
 
 function calculateEnginePowerAtAltitude(basePower, h, superchargerData) {
-    const { density } = getAirPropertiesAtAltitude(h);
-    const seaLevelDensity = gameData.constants.density_sea_level_kg_m3;
-    const densityRatio = density / seaLevelDensity;
-
     if (h <= superchargerData.rated_altitude_m) {
         return basePower;
     } else {
-        // Potência cai com a densidade após a altitude nominal
         const ratedAltProps = getAirPropertiesAtAltitude(superchargerData.rated_altitude_m);
-        const ratedDensityRatio = ratedAltProps.density / seaLevelDensity;
-        return basePower * (densityRatio / ratedDensityRatio);
+        const currentAltProps = getAirPropertiesAtAltitude(h);
+        const densityRatio = currentAltProps.density / ratedAltProps.density;
+        return basePower * densityRatio;
     }
 }
 
@@ -201,7 +200,7 @@ async function parseCSV(url) {
         return lines.slice(1).map(line => {
             const values = robustSplit(line);
             let row = {};
-            headers.forEach((header, i) => { row[header] = values[i] || ''; });
+            headers.forEach((header, i) => { row[headers[i]] = values[i] || ''; });
             return row;
         });
     } catch (error) {
@@ -209,6 +208,7 @@ async function parseCSV(url) {
         throw error;
     }
 }
+
 
 async function loadGameDataFromSheets() {
     const countryDropdown = document.getElementById('country_doctrine');
@@ -327,7 +327,7 @@ function updateCalculations() {
         document.getElementById('status').textContent = "Selecione o tipo de aeronave e um motor com potência válida para começar.";
         document.getElementById('status').className = "status-indicator";
         // Limpa a UI de resultados se a seleção for inválida
-        ['unit_cost', 'total_production_cost', 'total_metal_cost', 'total_weight', 'total_power', 'speed_max', 'rate_of_climb', 'service_ceiling', 'max_range', 'turn_time', 'main_armament', 'reliability_display', 'producible_units'].forEach(id => document.getElementById(id).textContent = '0');
+        ['unit_cost', 'total_production_cost', 'total_metal_cost', 'total_weight', 'total_power', 'speed_max_sl', 'speed_max_alt', 'rate_of_climb', 'service_ceiling', 'max_range', 'turn_time', 'main_armament', 'reliability_display', 'producible_units'].forEach(id => document.getElementById(id).textContent = '0');
         return null;
     }
 
@@ -363,7 +363,7 @@ function updateCalculations() {
         baseEnginePower = 0; // Invalida
     } else {
         document.getElementById('engine_power_note').textContent = "";
-        baseUnitCost += engineData.cost + (enginePower * 20); // Custo por HP aumentado
+        baseUnitCost += engineData.cost + (enginePower * 20);
         baseMetalCost += engineData.metal_cost;
         totalEmptyWeight += engineData.weight;
         reliabilityModifier *= engineData.reliability;
@@ -393,6 +393,32 @@ function updateCalculations() {
     totalEmptyWeight += superchargerData.weight;
     document.getElementById('supercharger_note').textContent = superchargerData.description;
 
+    // Equipamentos
+    let equipmentWeight = 0;
+    document.querySelectorAll('#protection-section input:checked, #equipment-section input:checked').forEach(cb => {
+        const item = gameData.components.protection[cb.id] || gameData.components.equipment[cb.id];
+        baseUnitCost += item.cost;
+        equipmentWeight += item.weight;
+        baseMetalCost += item.metal_cost;
+        if(item.reliability_mod) reliabilityModifier *= item.reliability_mod;
+        if(item.maneuverability_mod) performanceBonuses.maneuverability *= item.maneuverability_mod;
+        if(item.range_mod) performanceBonuses.range *= item.range_mod;
+    });
+    
+    // Lógica dos Tanques Descartáveis
+    const dropTanks = document.getElementById('drop_tanks').checked;
+    if (dropTanks) {
+        ['bomb_50', 'bomb_100', 'bomb_250', 'bomb_500', 'bomb_1000', 'torpedo', 'incendiary', 'rockets'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = 0;
+            el.disabled = true;
+        });
+    } else {
+         ['bomb_50', 'bomb_100', 'bomb_250', 'bomb_500', 'bomb_1000', 'torpedo', 'incendiary', 'rockets'].forEach(id => {
+            document.getElementById(id).disabled = false;
+        });
+    }
+
     // Armamentos e Carga
     let armamentWeight = 0, armamentCost = 0, armamentMetalCost = 0;
     let armamentTexts = [];
@@ -410,26 +436,10 @@ function updateCalculations() {
     baseMetalCost += armamentMetalCost;
     finalArmamentText = armamentTexts.length > 0 ? armamentTexts.join(', ') : "Desarmado";
 
-    // Proteção e Equipamentos
-    let protectionWeight = 0, equipmentWeight = 0;
-    document.querySelectorAll('#protection-section input:checked').forEach(cb => {
-        const item = gameData.components.protection[cb.id];
-        baseUnitCost += item.cost;
-        protectionWeight += item.weight;
-        baseMetalCost += item.metal_cost;
-        if(item.reliability_mod) reliabilityModifier *= item.reliability_mod;
-    });
-    document.querySelectorAll('#equipment-section input:checked').forEach(cb => {
-        const item = gameData.components.equipment[cb.id];
-        baseUnitCost += item.cost;
-        equipmentWeight += item.weight;
-        baseMetalCost += item.metal_cost;
-        if(item.reliability_mod) reliabilityModifier *= item.reliability_mod;
-    });
-
     // Peso Total de Combate
-    totalEmptyWeight += protectionWeight + equipmentWeight;
-    const fuelWeight = (gameData.constants.base_fuel_capacity_liters * (totalEmptyWeight / 2000)) * 0.72;
+    totalEmptyWeight += equipmentWeight;
+    const fuelCapacity = gameData.constants.base_fuel_capacity_liters * (totalEmptyWeight / 2000);
+    const fuelWeight = fuelCapacity * 0.72;
     const combatWeight = totalEmptyWeight + armamentWeight + (numCrewmen * 90) + fuelWeight;
 
     // Modificadores Finais
@@ -441,53 +451,52 @@ function updateCalculations() {
     document.getElementById('production_quality_note').textContent = `Foco ${sliderValue > 0 ? 'em Produção' : 'em Qualidade'}: Confiabilidade ${sliderValue > 0 ? '-' : '+'} / Custo ${sliderValue > 0 ? '-' : '+'} / Capacidade Prod. ${sliderValue > 0 ? '+' : '-'}`;
 
     // --- CÁLCULOS DE PERFORMANCE COM FÍSICA APRIMORADA ---
-    const altitude = superchargerData.rated_altitude_m > 0 ? superchargerData.rated_altitude_m : 2000; // Altitude de teste
-    const airProps = getAirPropertiesAtAltitude(altitude);
-    const powerAtAltitude = calculateEnginePowerAtAltitude(baseEnginePower, altitude, superchargerData);
-    const powerWatts = powerAtAltitude * 745.7;
+    const calculatePerformanceAtAltitude = (h) => {
+        const airProps = getAirPropertiesAtAltitude(h);
+        const powerAtAltitude = calculateEnginePowerAtAltitude(baseEnginePower, h, superchargerData);
+        const powerWatts = powerAtAltitude * 745.7;
 
-    // Velocidade Máxima (Iterativo)
-    let v_ms = 150; // Chute inicial (540 km/h)
-    for (let i = 0; i < 10; i++) {
-        const thrust = (powerWatts * propData.efficiency) / v_ms;
-        const CL = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * v_ms * v_ms * typeData.wing_area_m2);
-        const CDi = (CL * CL) / (Math.PI * typeData.aspect_ratio * typeData.oswald_efficiency);
-        const CD = typeData.cd_0 + CDi;
-        const dragForce = 0.5 * airProps.density * v_ms * v_ms * typeData.wing_area_m2 * CD;
-        v_ms = Math.sqrt((thrust / dragForce) * v_ms * v_ms);
-    }
-    const finalSpeedKmh = v_ms * 3.6 * performanceBonuses.speed;
+        let v_ms = 150; // Chute inicial
+        for (let i = 0; i < 5; i++) { // Iteração para velocidade
+             const thrust = (powerWatts * propData.efficiency) / Math.max(v_ms, 30);
+             const CL = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * v_ms * v_ms * typeData.wing_area_m2);
+             const CDi = (CL * CL) / (Math.PI * typeData.aspect_ratio * typeData.oswald_efficiency);
+             const CD = typeData.cd_0 + CDi;
+             const dragForce = 0.5 * airProps.density * v_ms * v_ms * typeData.wing_area_m2 * CD;
+             v_ms = Math.sqrt((thrust / Math.max(dragForce, 0.1)) * v_ms * v_ms);
+        }
+        return { speed_kmh: v_ms * 3.6, power_w: powerWatts, v_ms: v_ms };
+    };
     
-    // Razão de Subida
-    const thrust_sl = (powerWatts * propData.efficiency) / 100; // Empuxo em baixa velocidade
-    const drag_sl = 0.5 * gameData.constants.density_sea_level_kg_m3 * 100 * 100 * typeData.wing_area_m2 * typeData.cd_0;
-    const rate_of_climb_ms = ((thrust_sl - drag_sl) * 100) / (combatWeight * gameData.constants.standard_gravity_ms2) * performanceBonuses.rate_of_climb;
+    const perfSL = calculatePerformanceAtAltitude(0);
+    const perfAlt = calculatePerformanceAtAltitude(superchargerData.rated_altitude_m);
+    const finalSpeedKmhSL = perfSL.speed_kmh * performanceBonuses.speed;
+    const finalSpeedKmhAlt = perfAlt.speed_kmh * performanceBonuses.speed;
 
+    // Razão de Subida
+    const thrust_sl = (perfSL.power_w * propData.efficiency) / 80; // Empuxo em vel de subida
+    const drag_sl = 0.5 * gameData.constants.density_sea_level_kg_m3 * 80 * 80 * typeData.wing_area_m2 * typeData.cd_0;
+    const rate_of_climb_ms = ((thrust_sl - drag_sl) * 80) / (combatWeight * gameData.constants.standard_gravity_ms2) * performanceBonuses.rate_of_climb;
+    
     // Teto de Serviço
     let serviceCeiling = 0;
     for (let h = 0; h < 15000; h += 500) {
-        const tempAirProps = getAirPropertiesAtAltitude(h);
-        const tempPower = calculateEnginePowerAtAltitude(baseEnginePower, h, superchargerData) * 745.7;
-        const tempThrust = (tempPower * propData.efficiency) / 100;
-        const tempDrag = 0.5 * tempAirProps.density * 100 * 100 * typeData.wing_area_m2 * typeData.cd_0;
-        const roc = ((tempThrust - tempDrag) * 100) / (combatWeight * gameData.constants.standard_gravity_ms2);
-        if (roc < 0.5) {
-            serviceCeiling = h;
-            break;
-        }
-        if (h >= 14500) serviceCeiling = h;
+        const roc = calculatePerformanceAtAltitude(h).power_w > (combatWeight * gameData.constants.standard_gravity_ms2 * 0.5) ? 0.5 : 0;
+        if(roc < 0.5) { serviceCeiling = h; break; }
+        if(h >= 14500) serviceCeiling = h;
     }
     const finalServiceCeiling = serviceCeiling * performanceBonuses.service_ceiling;
 
     // Manobrabilidade
     const wingLoading = combatWeight / typeData.wing_area_m2;
-    const max_load_factor = Math.min(gameData.constants.turn_g_force, (0.5 * airProps.density * v_ms * v_ms * typeData.cl_max) / wingLoading);
-    const turn_radius = (v_ms * v_ms) / (gameData.constants.standard_gravity_ms2 * Math.sqrt(max_load_factor * max_load_factor - 1));
-    let turn_time_s = (2 * Math.PI * turn_radius) / v_ms;
+    const v_turn = perfAlt.v_ms * 0.8; // Velocidade de curva
+    const max_load_factor = Math.min(gameData.constants.turn_g_force, (0.5 * getAirPropertiesAtAltitude(2000).density * v_turn * v_turn * typeData.cl_max) / wingLoading);
+    const turn_radius = (v_turn * v_turn) / (gameData.constants.standard_gravity_ms2 * Math.sqrt(Math.max(1.1, max_load_factor * max_load_factor) - 1));
+    let turn_time_s = (2 * Math.PI * turn_radius) / v_turn;
     turn_time_s /= performanceBonuses.maneuverability;
     turn_time_s = Math.max(12, Math.min(60, turn_time_s));
 
-    // Alcance (Breguet)
+    // Alcance
     const bsfc_kg_per_watt_s = (engineData.bsfc_g_per_kwh / 1000) / 3.6e6;
     const L_D_ratio = typeData.cd_0 > 0 ? 1 / (2 * Math.sqrt(typeData.cd_0 * (1 / (Math.PI * typeData.aspect_ratio * typeData.oswald_efficiency)))) : 10;
     const range_m = (propData.efficiency / (gameData.constants.standard_gravity_ms2 * bsfc_kg_per_watt_s)) * L_D_ratio * Math.log(combatWeight / (combatWeight - fuelWeight));
@@ -506,7 +515,8 @@ function updateCalculations() {
     document.getElementById('total_metal_cost').textContent = (Math.round(baseMetalCost) * quantity).toLocaleString('pt-BR');
     document.getElementById('total_weight').textContent = `${Math.round(combatWeight).toLocaleString('pt-BR')} kg`;
     document.getElementById('total_power').textContent = `${Math.round(baseEnginePower).toLocaleString('pt-BR')} hp`;
-    document.getElementById('speed_max').textContent = `${Math.round(finalSpeedKmh).toLocaleString('pt-BR')} km/h`;
+    document.getElementById('speed_max_sl').textContent = `${Math.round(finalSpeedKmhSL).toLocaleString('pt-BR')} km/h`;
+    document.getElementById('speed_max_alt').textContent = `${Math.round(finalSpeedKmhAlt).toLocaleString('pt-BR')} km/h`;
     document.getElementById('rate_of_climb').textContent = `${rate_of_climb_ms.toFixed(1)} m/s`;
     document.getElementById('service_ceiling').textContent = `${Math.round(finalServiceCeiling).toLocaleString('pt-BR')} m`;
     document.getElementById('max_range').textContent = `${Math.round(finalRangeKm).toLocaleString('pt-BR')} km`;
@@ -533,7 +543,7 @@ function updateCalculations() {
     if (finalReliability < 70) {
         statusEl.textContent = "🔥 Confiabilidade baixa: Propenso a falhas!";
         statusEl.className = "status-indicator status-error";
-    } else if (finalSpeedKmh < 350 && typeData.name.includes('Caça')) {
+    } else if (finalSpeedKmhAlt < 350 && typeData.name.includes('Caça')) {
         statusEl.textContent = "⚠️ Caça muito lento para o combate aéreo.";
         statusEl.className = "status-indicator status-warning";
     } else if (turn_time_s > 28 && typeData.name.includes('Caça')) {
@@ -559,7 +569,8 @@ function updateCalculations() {
         totalProductionCost: (finalUnitCost * quantity).toLocaleString('pt-BR'),
         totalMetalCost: (Math.round(baseMetalCost) * quantity).toLocaleString('pt-BR'),
         totalWeight: `${Math.round(combatWeight).toLocaleString('pt-BR')} kg`,
-        speedMax: `${Math.round(finalSpeedKmh).toLocaleString('pt-BR')} km/h`,
+        speedMaxSL: `${Math.round(finalSpeedKmhSL).toLocaleString('pt-BR')} km/h`,
+        speedMaxAlt: `${Math.round(finalSpeedKmhAlt).toLocaleString('pt-BR')} km/h`,
         rateOfClimb: `${rate_of_climb_ms.toFixed(1)} m/s`,
         serviceCeiling: `${Math.round(finalServiceCeiling).toLocaleString('pt-BR')} m`,
         maxRange: `${Math.round(finalRangeKm).toLocaleString('pt-BR')} km`,
