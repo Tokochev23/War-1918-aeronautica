@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha da Aeronave</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonte Inter do Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Link para o arquivo de estilos CSS da ficha -->
+    <link rel="stylesheet" href="assets/css/ficha.css">
+    <!-- html2canvas CDN para salvar como PNG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="ficha-container">
+        <div class="ficha-header">
+            <h1 id="ficha_aircraft_name">Carregando Ficha...</h1>
+            <p id="ficha_aircraft_type_doctrine"></p>
+        </div>
+
+        <div class="ficha-content" id="ficha_content_to_capture">
+            <!-- Seção de Imagem com Upload e Seleção -->
+            <div class="ficha-image-section">
+                <img id="ficha_matched_aircraft_image" src="https://placehold.co/400x250/5F9EA0/ffffff?text=IMAGEM+DA+AERONAVE" alt="Imagem da Aeronave" class="ficha-aircraft-image">
+                <p class="text-sm text-gray-500 mt-2" id="image_source_text">Escolha ou carregue uma imagem de referência.</p>
+                
+                <div class="image-controls">
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="image_upload_input" accept="image/*" class="file-upload-input">
+                        <label for="image_upload_input" class="file-upload-button">Carregar Imagem</label>
+                    </div>
+                    
+                    <select id="real_aircraft_select" class="real-aircraft-select">
+                        <option value="">Ou selecione uma aeronave real...</option>
+                    </select>
+                    <button id="apply_selected_aircraft" class="apply-button">Aplicar Aeronave Selecionada</button>
+                </div>
+            </div>
+
+            <div class="ficha-section main-stats">
+                <h3>Estatísticas de Performance</h3>
+                <div class="stats-grid">
+                    <div class="stat-item"><span class="label">Custo/Unid:</span> <span id="ficha_unit_cost"></span></div>
+                    <div class="stat-item"><span class="label">Peso Total:</span> <span id="ficha_total_weight"></span></div>
+                    <div class="stat-item"><span class="label">Potência Total:</span> <span id="ficha_total_power"></span></div>
+                    <div class="stat-item"><span class="label">Velocidade Máxima:</span> <span id="ficha_speed_max"></span></div>
+                    <div class="stat-item"><span class="label">Razão de Subida:</span> <span id="ficha_rate_of_climb"></span></div>
+                    <div class="stat-item"><span class="label">Teto de Serviço:</span> <span id="ficha_service_ceiling"></span></div>
+                    <div class="stat-item"><span class="label">Alcance Máximo:</span> <span id="ficha_max_range"></span></div>
+                    <div class="stat-item"><span class="label">Manobrabilidade (Tempo de Curva):</span> <span id="ficha_turn_time"></span></div>
+                    <div class="stat-item"><span class="label">Confiabilidade:</span> <span id="ficha_reliability"></span></div>
+                    <div class="stat-item"><span class="label">Armamento:</span> <span id="ficha_main_armament"></span></div>
+                    <div class="stat-item"><span class="label">Número de Tripulantes:</span> <span id="ficha_num_crewmen"></span></div>
+                </div>
+            </div>
+
+            <div class="ficha-section detailed-info">
+                <h3>Detalhes do Projeto</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Tipo de Aeronave:</span> <span id="ficha_aircraft_type"></span>
+                        <p class="info-description" id="ficha_aircraft_type_description"></p>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Material da Estrutura:</span> <span id="ficha_structure_type"></span>
+                        <p class="info-description" id="ficha_structure_description"></p>
+                    </div>
+                     <div class="info-group">
+                        <span class="info-label">Tipo de Hélice:</span> <span id="ficha_propeller_type"></span>
+                        <p class="info-description" id="ficha_propeller_description"></p>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Sistema de Refrigeração:</span> <span id="ficha_cooling_system"></span>
+                        <p class="info-description" id="ficha_cooling_description"></p>
+                    </div>
+                     <div class="info-group">
+                        <span class="info-label">Alimentação de Combustível:</span> <span id="ficha_fuel_feed"></span>
+                        <p class="info-description" id="ficha_fuel_feed_description"></p>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Sobrealimentação:</span> <span id="ficha_supercharger"></span>
+                        <p class="info-description" id="ficha_supercharger_description"></p>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Proteção:</span> <span id="ficha_protection"></span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Equipamentos:</span> <span id="ficha_equipment"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ficha-actions">
+            <button id="save_ficha_button" class="save-button">Salvar Ficha como PNG</button>
+            <button id="back_button" class="back-button" onclick="window.close()">Voltar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const aircraftDataString = localStorage.getItem('aircraftSheetData');
+            const realWorldAircraftString = localStorage.getItem('realWorldAircraftData');
+            let realWorldAircraft = [];
+
+            if (realWorldAircraftString) {
+                realWorldAircraft = JSON.parse(realWorldAircraftString);
+            }
+
+            if (aircraftDataString) {
+                const aircraftData = JSON.parse(aircraftDataString);
+
+                // Cabeçalho
+                document.getElementById('ficha_aircraft_name').textContent = aircraftData.aircraftName;
+                document.getElementById('ficha_aircraft_type_doctrine').textContent = `${aircraftData.aircraftTypeName} - Doutrina: ${aircraftData.doctrineName}`;
+
+                // Estatísticas
+                document.getElementById('ficha_unit_cost').textContent = aircraftData.finalUnitCost;
+                document.getElementById('ficha_total_weight').textContent = aircraftData.totalWeight;
+                document.getElementById('ficha_total_power').textContent = `${aircraftData.enginePower} hp`;
+                document.getElementById('ficha_speed_max').textContent = aircraftData.speedMax;
+                document.getElementById('ficha_rate_of_climb').textContent = aircraftData.rateOfClimb;
+                document.getElementById('ficha_service_ceiling').textContent = aircraftData.serviceCeiling;
+                document.getElementById('ficha_max_range').textContent = aircraftData.maxRange;
+                document.getElementById('ficha_turn_time').textContent = aircraftData.turnTime;
+                document.getElementById('ficha_reliability').textContent = aircraftData.reliability;
+                document.getElementById('ficha_main_armament').textContent = aircraftData.armamentText;
+                document.getElementById('ficha_num_crewmen').textContent = aircraftData.numCrewmen;
+
+                // Detalhes do Projeto
+                document.getElementById('ficha_aircraft_type').textContent = aircraftData.aircraftTypeName;
+                document.getElementById('ficha_aircraft_type_description').textContent = aircraftData.aircraftTypeDescription;
+                document.getElementById('ficha_structure_type').textContent = aircraftData.structureTypeName;
+                document.getElementById('ficha_structure_description').textContent = aircraftData.structureTypeDescription;
+                document.getElementById('ficha_propeller_type').textContent = aircraftData.propellerTypeName;
+                document.getElementById('ficha_propeller_description').textContent = aircraftData.propellerTypeDescription;
+                document.getElementById('ficha_cooling_system').textContent = aircraftData.coolingSystemName;
+                document.getElementById('ficha_cooling_description').textContent = aircraftData.coolingSystemDescription;
+                document.getElementById('ficha_fuel_feed').textContent = aircraftData.fuelFeedName;
+                document.getElementById('ficha_fuel_feed_description').textContent = aircraftData.fuelFeedDescription;
+                document.getElementById('ficha_supercharger').textContent = aircraftData.superchargerName;
+                document.getElementById('ficha_supercharger_description').textContent = aircraftData.superchargerDescription;
+                document.getElementById('ficha_protection').textContent = aircraftData.selectedProtection.join(', ') || 'Nenhuma';
+                document.getElementById('ficha_equipment').textContent = aircraftData.selectedEquipment.join(', ') || 'Nenhum';
+
+
+                // Imagem
+                const imageUploadInput = document.getElementById('image_upload_input');
+                const realAircraftSelect = document.getElementById('real_aircraft_select');
+                const applySelectedAircraftButton = document.getElementById('apply_selected_aircraft');
+                const fichaMatchedAircraftImage = document.getElementById('ficha_matched_aircraft_image');
+                const imageSourceText = document.getElementById('image_source_text');
+
+                realWorldAircraft.forEach(plane => {
+                    const option = document.createElement('option');
+                    option.value = plane.id;
+                    option.textContent = plane.name;
+                    realAircraftSelect.appendChild(option);
+                });
+
+                imageUploadInput.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            fichaMatchedAircraftImage.src = e.target.result;
+                            imageSourceText.textContent = `Imagem personalizada`;
+                            realAircraftSelect.value = ""; 
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+
+                applySelectedAircraftButton.addEventListener('click', () => {
+                    const selectedAircraftId = realAircraftSelect.value;
+                    if (selectedAircraftId) {
+                        const selectedAircraft = realWorldAircraft.find(plane => plane.id === selectedAircraftId);
+                        if (selectedAircraft) {
+                            fichaMatchedAircraftImage.src = selectedAircraft.image_url || 'https://placehold.co/400x250/5F9EA0/ffffff?text=IMAGEM+NÃO+DISPONÍVEL';
+                            imageSourceText.textContent = `Baseado em: ${selectedAircraft.name}`;
+                            imageUploadInput.value = ''; 
+                        }
+                    }
+                });
+
+                // Salvar como PNG
+                document.getElementById('save_ficha_button').addEventListener('click', () => {
+                    const fichaContent = document.getElementById('ficha_content_to_capture');
+                    html2canvas(fichaContent, { scale: 2, useCORS: true, logging: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `${aircraftData.aircraftName.replace(/ /g, '_')}_Ficha.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    });
+                });
+
+            } else {
+                document.getElementById('ficha_aircraft_name').textContent = 'Nenhum dado de aeronave encontrado.';
+            }
+        });
+    </script>
+</body>
+</html>
