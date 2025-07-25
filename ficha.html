@@ -51,7 +51,7 @@
                     <div class="stat-item"><span class="label">Alcance Máximo:</span> <span id="ficha_max_range"></span></div>
                     <div class="stat-item"><span class="label">Manobrabilidade (Tempo de Curva):</span> <span id="ficha_turn_time"></span></div>
                     <div class="stat-item"><span class="label">Confiabilidade:</span> <span id="ficha_reliability"></span></div>
-                    <div class="stat-item"><span class="label">Armamento:</span> <span id="ficha_main_armament"></span></div>
+                    <div class="stat-item"><span class="label">Armamento Ofensivo:</span> <span id="ficha_offensive_armament"></span></div>
                     <div class="stat-item"><span class="label">Número de Tripulantes:</span> <span id="ficha_num_crewmen"></span></div>
                 </div>
             </div>
@@ -84,13 +84,92 @@
                         <p class="info-description" id="ficha_supercharger_description"></p>
                     </div>
                     <div class="info-group">
-                        <span class="info-label">Proteção:</span> <span id="ficha_protection"></span>
+                        <span class="info-label">Tipo de Asa:</span> <span id="ficha_wing_type"></span>
+                        <p class="info-description" id="ficha_wing_type_description"></p>
                     </div>
                     <div class="info-group">
-                        <span class="info-label">Equipamentos:</span> <span id="ficha_equipment"></span>
+                        <span class="info-label">Trem de Pouso:</span> <span id="ficha_landing_gear_type"></span>
+                        <p class="info-description" id="ficha_landing_gear_type_description"></p>
                     </div>
                 </div>
             </div>
+
+            <div class="ficha-section">
+                <h3>Configurações de Asa Adicionais</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Funcionalidades de Asa:</span> <span id="ficha_wing_features"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-section">
+                <h3>Aprimoramentos de Motor</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Aprimoramentos:</span> <span id="ficha_engine_enhancements"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-section">
+                <h3>Armamentos Defensivos</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Tipo de Torre:</span> <span id="ficha_defensive_turret_type"></span>
+                        <p class="info-description" id="ficha_defensive_turret_type_description"></p>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Armas da Torre:</span> <span id="ficha_defensive_armament_texts"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-section">
+                <h3>Proteção</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Proteções Aplicadas:</span> <span id="ficha_protection"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-section">
+                <h3>Cockpit e Conforto</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Itens de Cockpit/Conforto:</span> <span id="ficha_cockpit_comfort"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-section">
+                <h3>Sistemas Avançados e Aviônicos</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Sistemas Instalados:</span> <span id="ficha_advanced_avionics"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-section">
+                <h3>Equipamentos Diversos</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Equipamentos Instalados:</span> <span id="ficha_equipment"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ficha-section">
+                <h3>Confiabilidade e Manutenibilidade</h3>
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Recursos de Manutenção:</span> <span id="ficha_maintainability_features"></span>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="ficha-actions">
@@ -126,7 +205,7 @@
                 document.getElementById('ficha_max_range').textContent = aircraftData.maxRange;
                 document.getElementById('ficha_turn_time').textContent = aircraftData.turnTime;
                 document.getElementById('ficha_reliability').textContent = aircraftData.reliability;
-                document.getElementById('ficha_main_armament').textContent = aircraftData.armamentText;
+                document.getElementById('ficha_offensive_armament').textContent = aircraftData.offensiveArmamentText; // Updated ID
                 document.getElementById('ficha_num_crewmen').textContent = aircraftData.numCrewmen;
 
                 // Detalhes do Projeto
@@ -142,8 +221,25 @@
                 document.getElementById('ficha_fuel_feed_description').textContent = aircraftData.fuelFeedDescription;
                 document.getElementById('ficha_supercharger').textContent = aircraftData.superchargerName;
                 document.getElementById('ficha_supercharger_description').textContent = aircraftData.superchargerDescription;
+                
+                // New: Wing Type and Landing Gear Type
+                document.getElementById('ficha_wing_type').textContent = aircraftData.wingTypeName;
+                document.getElementById('ficha_wing_type_description').textContent = aircraftData.wingTypeDescription;
+                document.getElementById('ficha_landing_gear_type').textContent = aircraftData.landingGearTypeName;
+                document.getElementById('ficha_landing_gear_type_description').textContent = aircraftData.landingGearTypeDescription;
+
+
+                // New Sections
+                document.getElementById('ficha_wing_features').textContent = aircraftData.selectedWingFeatures.join(', ') || 'Nenhum';
+                document.getElementById('ficha_engine_enhancements').textContent = aircraftData.selectedEngineEnhancements.join(', ') || 'Nenhum';
+                document.getElementById('ficha_defensive_turret_type').textContent = aircraftData.defensiveTurretTypeName;
+                document.getElementById('ficha_defensive_turret_type_description').textContent = aircraftData.defensiveTurretTypeName !== 'Nenhum' ? aircraftData.defensiveTurretTypeDescription : ''; // Assuming description for turret type
+                document.getElementById('ficha_defensive_armament_texts').textContent = aircraftData.defensiveArmamentTexts.join(', ') || 'Nenhum';
                 document.getElementById('ficha_protection').textContent = aircraftData.selectedProtection.join(', ') || 'Nenhuma';
+                document.getElementById('ficha_cockpit_comfort').textContent = aircraftData.selectedCockpitComfort.join(', ') || 'Nenhum';
+                document.getElementById('ficha_advanced_avionics').textContent = aircraftData.selectedAdvancedAvionics.join(', ') || 'Nenhum';
                 document.getElementById('ficha_equipment').textContent = aircraftData.selectedEquipment.join(', ') || 'Nenhum';
+                document.getElementById('ficha_maintainability_features').textContent = aircraftData.selectedMaintainabilityFeatures.join(', ') || 'Nenhum';
 
 
                 // Imagem
