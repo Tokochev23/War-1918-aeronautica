@@ -185,14 +185,24 @@ async function parseCSV(url) {
             return [];
         }
 
+        // Função robusta para separar colunas, lidando com aspas
         const robustSplit = (str) => {
-            return str.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => {
-                let value = v.trim();
-                if (value.startsWith('"') && value.endsWith('"')) {
-                    value = value.substring(1, value.length - 1);
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < str.length; i++) {
+                const char = str[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
                 }
-                return value.replace(/""/g, '"');
-            });
+            }
+            result.push(current);
+            return result.map(v => v.trim());
         };
 
         const headers = robustSplit(lines[0]);
@@ -211,6 +221,7 @@ async function parseCSV(url) {
         throw error;
     }
 }
+
 
 async function loadGameDataFromSheets() {
     const countryDropdown = document.getElementById('country_doctrine');
@@ -241,7 +252,8 @@ async function loadGameDataFromSheets() {
         aeronavesRaw.forEach(row => {
             const countryName = row['País'];
             if (tempCountries[countryName]) {
-                tempCountries[countryName].production_capacity = cleanAndParseFloat(row['Capacidade de Produção Aérea']); // Coluna P
+                // A coluna na planilha é "Capacidade de produção"
+                tempCountries[countryName].production_capacity = cleanAndParseFloat(row['Capacidade de produção']);
             }
         });
 
@@ -315,7 +327,7 @@ function updateCalculations() {
     if (!typeData) {
         document.getElementById('status').textContent = "Selecione um tipo de aeronave para começar.";
         document.getElementById('status').className = "status-indicator";
-        return; // Retorna aqui para evitar erros
+        return null; // Retorna nulo para indicar cálculo inválido
     }
     baseUnitCost += typeData.cost;
     baseMetalCost += typeData.metal_cost;
@@ -333,7 +345,7 @@ function updateCalculations() {
     const doctrineData = gameData.doctrines[selectedAirDoctrine];
     const countryData = gameData.countries[selectedCountryName];
 
-    document.getElementById('doctrine_note').textContent = doctrineData ? doctrineData.description : "";
+    document.getElementById('doctrine_note').textContent = doctrineData ? doctrineData.description : "Selecione uma doutrina para ver seus efeitos.";
     if (doctrineData) {
         costModifier *= (doctrineData.cost_modifier || 1.0);
         reliabilityModifier *= (doctrineData.reliability_modifier || 1.0);
@@ -354,7 +366,7 @@ function updateCalculations() {
         countryMetalBalance = countryData.metal_balance;
         document.getElementById('country_bonus_note').textContent = `Bônus do País: Redução de Custo de ${(countryCostReduction * 100).toFixed(1)}%, Tec. Aeronáutica: ${countryData.tech_level_air}.`;
     } else {
-         document.getElementById('country_bonus_note').textContent = "";
+         document.getElementById('country_bonus_note').textContent = "Selecione um país para ver seus bônus.";
     }
 
     // Estrutura
@@ -380,6 +392,9 @@ function updateCalculations() {
             dragCoefficient *= engineData.frontal_area_mod;
             reliabilityModifier *= engineData.reliability;
         }
+    } else {
+        document.getElementById('engine_type_note').textContent = "Selecione um tipo de motor.";
+        finalEnginePower = 0;
     }
     
     const propData = gameData.components.propellers[propellerType];
