@@ -47,7 +47,7 @@ const gameData = {
             cas: { name: "Apoio Aéreo Próximo (CAS)", cost: 65000, weight: 3000, metal_cost: 3200, crew: 1, wing_area_m2: 28, base_drag_coeff: 0.042, description: "Robusto e bem armado para atacar alvos terrestres. Geralmente mais lento e blindado." },
             tactical_bomber: { name: "Bombardeiro Tático", cost: 120000, weight: 5000, metal_cost: 6000, crew: 4, wing_area_m2: 50, base_drag_coeff: 0.045, description: "Velocidade e alcance para atacar alvos táticos atrás das linhas inimigas. Carga de bombas moderada." },
             strategic_bomber: { name: "Bombardeiro Estratégico", cost: 250000, weight: 12000, metal_cost: 10000, crew: 7, wing_area_m2: 100, base_drag_coeff: 0.050, description: "Longo alcance e grande capacidade de bombas para missões estratégicas profundas em território inimigo." },
-            zeppelin: { name: "Zeppelin", cost: 500000, weight: 50000, metal_cost: 15000, crew: 20, wing_area_m2: 500, base_drag_coeff: 0.020, description: "Dirigível gigante para bombardeio estratégico ou reconhecimento de longo alcance. Lento, vulnerável, mas com alcance e carga imensos." },
+            zeppelin: { name: "Zeppelin", cost: 500000, weight: 50000, metal_cost: 15000, crew: 20, wing_area_m2: 500, base_drag_coeff: 0.020, description: "Dirigível gigante para bombardeio ou reconhecimento. Lento e vulnerável, mas com alcance e carga imensos." },
             naval_fighter: { name: "Caça Naval", cost: 60000, weight: 2200, metal_cost: 2800, crew: 1, wing_area_m2: 22, base_drag_coeff: 0.038, description: "Caça adaptado para operações em porta-aviões, com estrutura reforçada e geralmente asas dobráveis." },
             naval_cas: { name: "CAS Naval", cost: 90000, weight: 4000, metal_cost: 4500, crew: 2, wing_area_m2: 35, base_drag_coeff: 0.048, description: "Aeronave de ataque naval, incluindo bombardeiros de mergulho e torpedeiros." },
             naval_bomber: { name: "Bombardeiro Naval", cost: 150000, weight: 6000, metal_cost: 7000, crew: 4, wing_area_m2: 60, base_drag_coeff: 0.052, description: "Bombardeiro médio/pesado adaptado para operações navais, geralmente baseado em terra." },
@@ -77,7 +77,7 @@ const gameData = {
             wood_3: { name: "Madeira 3 pás", cost: 1800, weight: 45, metal_cost: 30, efficiency: 0.80, description: "Melhor tração para decolagem e subida que a de 2 pás." },
             metal_2: { name: "Metal 2 pás", cost: 2500, weight: 60, metal_cost: 200, efficiency: 0.82, description: "Mais durável que a de madeira, permite perfis de pá mais finos e eficientes." },
             metal_3: { name: "Metal 3 pás", cost: 4000, weight: 90, metal_cost: 300, efficiency: 0.88, description: "Bom desempenho geral, padrão para muitos caças de meio de período." },
-            adjustable: { name: "Passo Ajustável", cost: 15000, weight: 120, metal_cost: 500, efficiency: 0.95, description: "Permite ao piloto ajustar o passo da hélice para otimizar a performance em diferentes regimes de voo. Complexo e caro." }
+            adjustable: { name: "Passo Variável/Vel. Constante", cost: 15000, weight: 120, metal_cost: 500, efficiency: 0.95, description: "Permite ao piloto otimizar a performance em diferentes regimes de voo. Complexo e caro." }
         },
         cooling_systems: {
             air: { name: "Refrigeração a Ar", cost: 0, weight: 0, reliability_mod: 1.05, drag_mod: 1.0, description: "Simples e robusto, inerente a motores radiais. Menos eficiente e gera mais arrasto." },
@@ -88,10 +88,10 @@ const gameData = {
             injection: { name: "Injeção de Combustível", cost: 12000, weight: 20, reliability_mod: 1.05, performance_mod: 1.1, description: "Fornece combustível de forma precisa e confiável em qualquer atitude de voo. Aumenta a performance, mas é uma tecnologia cara e avançada." }
         },
         superchargers: {
-            none: { name: "Nenhum", cost: 0, weight: 0, ceiling_mod: 1.0, power_mod_alt: 1.0, description: "Motor naturalmente aspirado. Perde potência rapidamente com a altitude." },
-            single_stage: { name: "Mecânico - 1 Estágio", cost: 8000, weight: 50, ceiling_mod: 1.25, power_mod_alt: 1.2, description: "Melhora a performance em altitudes médias. Padrão para a maioria dos caças." },
-            two_stage: { name: "Mecânico - 2 Estágios", cost: 20000, weight: 90, ceiling_mod: 1.5, power_mod_alt: 1.4, description: "Excelente performance em altas altitudes. Complexo e rouba mais potência do motor." },
-            turbo: { name: "Turboalimentador", cost: 30000, weight: 150, ceiling_mod: 1.7, power_mod_alt: 1.6, description: "Usa os gases de escape para performance superior em altitudes muito elevadas. Pesado, caro e gera muito calor." }
+            none: { name: "Nenhum", cost: 0, weight: 0, ceiling_mod: 1.0, power_mod_alt: 0.6, description: "Motor naturalmente aspirado. Perde potência rapidamente com a altitude." },
+            single_stage: { name: "Mecânico - 1 Estágio", cost: 8000, weight: 50, ceiling_mod: 1.25, power_mod_alt: 0.8, description: "Melhora a performance em altitudes médias. Padrão para a maioria dos caças." },
+            two_stage: { name: "Mecânico - 2 Estágios", cost: 20000, weight: 90, ceiling_mod: 1.5, power_mod_alt: 0.9, description: "Excelente performance em altas altitudes. Complexo e rouba mais potência do motor." },
+            turbo: { name: "Turboalimentador", cost: 30000, weight: 150, ceiling_mod: 1.7, power_mod_alt: 1.0, description: "Usa os gases de escape para performance superior em altitudes muito elevadas. Pesado, caro e gera muito calor." }
         },
         armaments: {
             mg_30: { name: "Metralhadora .30", cost: 4500, weight: 12, metal_cost: 100 },
@@ -110,34 +110,34 @@ const gameData = {
             rockets: { name: "Foguetes Ar-Terra", cost: 9000, weight: 25, metal_cost: 200 },
         },
         protection: {
-            pilot_armor: { name: "Blindagem do Piloto", cost: 15000, weight: 250, metal_cost: 400, description: "Placas de aço ao redor do cockpit para proteger o piloto. Aumenta o peso." },
-            engine_armor: { name: "Blindagem do Motor", cost: 15000, weight: 250, metal_cost: 400, description: "Proteção para componentes vitais do motor, aumentando a chance de sobreviver a danos." },
-            tank_armor: { name: "Blindagem dos Tanques", cost: 18000, weight: 180, metal_cost: 300, description: "Placas de blindagem ao redor dos tanques de combustível para reduzir o risco de incêndio." },
-            self_sealing_tanks: { name: "Tanques Auto-Selantes", cost: 22500, weight: 45, metal_cost: 100, reliability_mod: 1.15, description: "Tanques com revestimento de borracha que selam pequenos furos, reduzindo drasticamente o risco de incêndios e vazamentos." },
+            pilot_armor: { name: "Blindagem do Piloto", cost: 15000, weight: 250, metal_cost: 400 },
+            engine_armor: { name: "Blindagem do Motor", cost: 15000, weight: 250, metal_cost: 400 },
+            tank_armor: { name: "Blindagem dos Tanques", cost: 18000, weight: 180, metal_cost: 300 },
+            self_sealing_tanks: { name: "Tanques Auto-Selantes", cost: 22500, weight: 45, metal_cost: 100, reliability_mod: 1.15 },
         },
         equipment: {
-            parachute: { name: "Paraquedas", cost: 7500, weight: 15, metal_cost: 10, description: "Equipamento de segurança básico para a tripulação. Aumenta a moral." },
-            ejection_seat: { name: "Assento Ejetável (Exp.)", cost: 150000, weight: 378, metal_cost: 500, description: "Tecnologia experimental e muito rara que permite a ejeção segura em alta velocidade. Pesado e caro." },
-            fire_extinguisher: { name: "Sistema Anti-Incêndio", cost: 45000, weight: 75, metal_cost: 150, reliability_mod: 1.1, description: "Sistema para apagar incêndios no motor, aumentando muito a sobrevivência da aeronave." },
-            radio_hf: { name: "Rádio HF", cost: 22500, weight: 100, metal_cost: 200, description: "Permite comunicação de longa distância e coordenação tática. Essencial para caças e bombardeiros." },
-            nav_instruments: { name: "Instrumentos de Navegação", cost: 15000, weight: 50, metal_cost: 100, description: "Auxilia na navegação em longas distâncias ou em mau tempo. Essencial para bombardeiros e patrulha naval." },
-            gyro_compass: { name: "Bússola Giroscópica", cost: 30000, weight: 80, metal_cost: 150, description: "Mais precisa que uma bússola magnética, essencial para navegação precisa e voo por instrumentos." },
-            gun_synchronizer: { name: "Sincronizador de Metralhadoras", cost: 60000, weight: 50, metal_cost: 100, reliability_mod: 0.98, description: "Permite atirar através do arco da hélice. Essencial para caças, mas é um sistema complexo que pode falhar." },
-            retractable_gear: { name: "Trem de Pouso Retrátil", cost: 22500, weight: 150, metal_cost: 300, drag_mod: 0.8, reliability_mod: 0.97, description: "Reduz drasticamente o arrasto, aumentando a velocidade. Adiciona peso e complexidade mecânica." },
-            pressurized_cabin: { name: "Cabine Pressurizada", cost: 25000, weight: 60, metal_cost: 120, ceiling_mod: 1.2, description: "Permite operações em altitudes muito elevadas sem a necessidade constante de máscaras de oxigênio. Aumenta o teto de serviço." },
-            dive_brakes: { name: "Freios de Mergulho", cost: 8000, weight: 50, metal_cost: 100, description: "Permite mergulhos controlados em alta velocidade para bombardeio preciso. Essencial para bombardeiros de mergulho." },
-            sirens: { name: "Sirenes Psicológicas", cost: 2000, weight: 10, metal_cost: 20, description: "Gera um som aterrorizante durante o mergulho para guerra psicológica. Sem efeito prático na performance." },
-            jato: { name: "Foguetes Auxiliares (JATO)", cost: 30000, weight: 120, metal_cost: 200, description: "Foguetes de uso único para decolagens curtas, especialmente para bombardeiros pesados ou de pistas improvisadas." },
+            parachute: { name: "Paraquedas", cost: 7500, weight: 15, metal_cost: 10 },
+            ejection_seat: { name: "Assento Ejetável (Exp.)", cost: 150000, weight: 378, metal_cost: 500 },
+            fire_extinguisher: { name: "Sistema Anti-Incêndio", cost: 45000, weight: 75, metal_cost: 150, reliability_mod: 1.1 },
+            radio_hf: { name: "Rádio HF", cost: 22500, weight: 100, metal_cost: 200 },
+            nav_instruments: { name: "Instrumentos de Navegação", cost: 15000, weight: 50, metal_cost: 100 },
+            gyro_compass: { name: "Bússola Giroscópica", cost: 30000, weight: 80, metal_cost: 150 },
+            gun_synchronizer: { name: "Sincronizador de Metralhadoras", cost: 60000, weight: 50, metal_cost: 100, reliability_mod: 0.98 },
+            retractable_gear: { name: "Trem de Pouso Retrátil", cost: 22500, weight: 150, metal_cost: 300, drag_mod: 0.8, reliability_mod: 0.97 },
+            pressurized_cabin: { name: "Cabine Pressurizada", cost: 25000, weight: 60, metal_cost: 120, ceiling_mod: 1.2 },
+            dive_brakes: { name: "Freios de Mergulho", cost: 8000, weight: 50, metal_cost: 100 },
+            sirens: { name: "Sirenes Psicológicas", cost: 2000, weight: 10, metal_cost: 20 },
+            jato: { name: "Foguetes Auxiliares (JATO)", cost: 30000, weight: 120, metal_cost: 200 },
         }
     },
     constants: {
         air_density_sea_level: 1.225,
         propeller_efficiency_base: 0.70,
-        lift_coefficient: 1.4,
+        lift_drag_ratio: 9.0, // Relação média de planeio
         climb_power_factor: 0.7,
         turn_g_force: 3,
         base_fuel_capacity_liters: 400,
-        fuel_consumption_base_factor: 0.0005,
+        fuel_consumption_base_factor: 0.00025, // kg/s por Watt
         country_cost_reduction_factor: 0.25,
         urbanization_cost_reduction_factor: 0.20,
         max_tech_civil_level: 150,
@@ -165,7 +165,6 @@ const realWorldAircraft = [
     { id: 'other', name: 'Yakovlev Yak-3 (alt)', image_url: 'https://lh3.googleusercontent.com/d/1hcPeyJkleEbn0oqDgKGykVWl47n9NDdF' }
 ];
 
-
 // --- FUNÇÕES AUXILIARES ---
 
 function cleanAndParseFloat(value) {
@@ -179,14 +178,31 @@ async function parseCSV(url) {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Erro ao carregar CSV de ${url}: ${response.statusText}`);
         const csvText = await response.text();
-        const lines = csvText.trim().split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-        const data = lines.slice(1).map(line => {
-            const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-            let row = {};
-            headers.forEach((header, i) => {
-                row[header] = values[i];
+        
+        const lines = csvText.trim().split('\n').filter(line => line.trim() !== '');
+        if (lines.length < 1) {
+            console.warn(`CSV from ${url} has no data.`);
+            return [];
+        }
+
+        const robustSplit = (str) => {
+            return str.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => {
+                let value = v.trim();
+                if (value.startsWith('"') && value.endsWith('"')) {
+                    value = value.substring(1, value.length - 1);
+                }
+                return value.replace(/""/g, '"');
             });
+        };
+
+        const headers = robustSplit(lines[0]);
+        
+        const data = lines.slice(1).map(line => {
+            const values = robustSplit(line);
+            let row = {};
+            for (let i = 0; i < headers.length; i++) {
+                row[headers[i]] = values[i] || ''; 
+            }
             return row;
         });
         return data;
@@ -225,8 +241,7 @@ async function loadGameDataFromSheets() {
         aeronavesRaw.forEach(row => {
             const countryName = row['País'];
             if (tempCountries[countryName]) {
-                // Coluna P para Capacidade de Produção Aérea
-                tempCountries[countryName].production_capacity = cleanAndParseFloat(row['Capacidade de Produção Aérea']);
+                tempCountries[countryName].production_capacity = cleanAndParseFloat(row['Capacidade de Produção Aérea']); // Coluna P
             }
         });
 
@@ -271,14 +286,6 @@ function populateCountryDropdown() {
     }
 }
 
-function getSelectedText(elementId) {
-    const selectEl = document.getElementById(elementId);
-    if (selectEl && selectEl.selectedIndex >= 0) {
-        return selectEl.options[selectEl.selectedIndex].text;
-    }
-    return 'N/A';
-}
-
 // --- FUNÇÃO PRINCIPAL DE CÁLCULO ---
 function updateCalculations() {
     // --- Entradas do Usuário ---
@@ -299,7 +306,7 @@ function updateCalculations() {
 
     // --- Variáveis de Cálculo ---
     let baseUnitCost = 0, baseMetalCost = 0, totalWeight = 0;
-    let costModifier = 1.0, weightModifier = 1.0, reliabilityModifier = 1.0, dragModifier = 1.0;
+    let costModifier = 1.0, weightModifier = 1.0, reliabilityModifier = 1.0, dragCoefficient = 0.02;
     let performanceBonuses = { speed: 1.0, maneuverability: 1.0, rate_of_climb: 1.0, range: 1.0, service_ceiling: 1.0 };
     let finalArmamentText = "N/A";
 
@@ -307,34 +314,35 @@ function updateCalculations() {
     const typeData = gameData.components.aircraft_types[aircraftType];
     if (!typeData) {
         document.getElementById('status').textContent = "Selecione um tipo de aeronave para começar.";
-        return;
+        document.getElementById('status').className = "status-indicator";
+        return; // Retorna aqui para evitar erros
     }
     baseUnitCost += typeData.cost;
     baseMetalCost += typeData.metal_cost;
     totalWeight += typeData.weight;
     let wingArea = typeData.wing_area_m2;
-    dragModifier *= typeData.base_drag_coeff;
+    dragCoefficient = typeData.base_drag_coeff;
     document.getElementById('aircraft_type_note').textContent = typeData.description;
     
     const crewInput = document.getElementById('num_crewmen');
     crewInput.min = typeData.crew;
     if(numCrewmen < typeData.crew) crewInput.value = typeData.crew;
-    document.getElementById('crew_note').textContent = `Tripulação recomendada para ${typeData.name}: ${typeData.crew}`;
+    document.getElementById('crew_note').textContent = `Tripulação recomendada: ${typeData.crew}`;
 
     // Doutrina e País
     const doctrineData = gameData.doctrines[selectedAirDoctrine];
+    const countryData = gameData.countries[selectedCountryName];
+
+    document.getElementById('doctrine_note').textContent = doctrineData ? doctrineData.description : "";
     if (doctrineData) {
         costModifier *= (doctrineData.cost_modifier || 1.0);
         reliabilityModifier *= (doctrineData.reliability_modifier || 1.0);
         weightModifier *= (doctrineData.weight_penalty || 1.0);
         if(doctrineData.performance_bonus) {
-            for(const key in doctrineData.performance_bonus) {
-                performanceBonuses[key] *= doctrineData.performance_bonus[key];
-            }
+            for(const key in doctrineData.performance_bonus) performanceBonuses[key] *= doctrineData.performance_bonus[key];
         }
     }
     
-    const countryData = gameData.countries[selectedCountryName];
     let countryCostReduction = 0;
     let countryProductionCapacity = 0;
     let countryMetalBalance = 0;
@@ -344,6 +352,9 @@ function updateCalculations() {
         countryCostReduction = Math.min(0.75, civilTechReduction + urbanizationReduction);
         countryProductionCapacity = countryData.production_capacity;
         countryMetalBalance = countryData.metal_balance;
+        document.getElementById('country_bonus_note').textContent = `Bônus do País: Redução de Custo de ${(countryCostReduction * 100).toFixed(1)}%, Tec. Aeronáutica: ${countryData.tech_level_air}.`;
+    } else {
+         document.getElementById('country_bonus_note').textContent = "";
     }
 
     // Estrutura
@@ -357,6 +368,7 @@ function updateCalculations() {
     const engineData = gameData.components.engines[engineType];
     let finalEnginePower = enginePower;
     if (engineData) {
+        document.getElementById('engine_type_note').textContent = engineData.description;
         if (enginePower < engineData.min_power || enginePower > engineData.max_power) {
             document.getElementById('engine_power_note').textContent = `Potência para ${engineData.name} deve ser entre ${engineData.min_power} e ${engineData.max_power} HP.`;
             finalEnginePower = 0;
@@ -365,7 +377,7 @@ function updateCalculations() {
             baseUnitCost += engineData.cost + (enginePower * 10);
             baseMetalCost += engineData.metal_cost;
             totalWeight += engineData.weight;
-            dragModifier *= engineData.frontal_area_mod;
+            dragCoefficient *= engineData.frontal_area_mod;
             reliabilityModifier *= engineData.reliability;
         }
     }
@@ -381,7 +393,7 @@ function updateCalculations() {
     baseUnitCost += coolingData.cost;
     totalWeight += coolingData.weight;
     reliabilityModifier *= coolingData.reliability_mod;
-    dragModifier *= coolingData.drag_mod;
+    dragCoefficient *= coolingData.drag_mod;
     document.getElementById('cooling_system_note').textContent = coolingData.description;
 
     const fuelFeedData = gameData.components.fuel_feeds[fuelFeed];
@@ -412,7 +424,6 @@ function updateCalculations() {
             armamentTexts.push(`${qty}x ${armData.name}`);
         }
     });
-
     baseUnitCost += armamentCost;
     totalWeight += armamentWeight;
     baseMetalCost += armamentMetalCost;
@@ -432,10 +443,9 @@ function updateCalculations() {
         totalWeight += item.weight;
         baseMetalCost += item.metal_cost;
         if(item.reliability_mod) reliabilityModifier *= item.reliability_mod;
-        if(item.drag_mod) dragModifier *= item.drag_mod;
+        if(item.drag_mod) dragCoefficient *= item.drag_mod;
         if(item.ceiling_mod) performanceBonuses.service_ceiling *= item.ceiling_mod;
     });
-
 
     // Modificadores Finais
     totalWeight *= weightModifier;
@@ -444,23 +454,42 @@ function updateCalculations() {
     reliabilityModifier *= (1 + (sliderValue * 0.15));
     baseUnitCost *= (1 + (sliderValue * 0.20));
     countryProductionCapacity *= (1 - (sliderValue * 0.25));
+    document.getElementById('production_quality_note').textContent = `Foco ${sliderValue > 0 ? 'em Produção' : 'em Qualidade'}: Confiabilidade ${sliderValue > 0 ? '-' : '+'} / Custo ${sliderValue > 0 ? '-' : '+'} / Capacidade Prod. ${sliderValue > 0 ? '+' : '-'}`;
 
-    // --- Cálculos de Performance ---
-    const thrust = (finalEnginePower * 745.7 * propEfficiency);
-    const drag = dragModifier * wingArea * gameData.constants.lift_coefficient;
-    const speed_ms = Math.sqrt((2 * thrust) / (gameData.constants.air_density_sea_level * drag)) * performanceBonuses.speed;
+
+    // --- Cálculos de Performance (REBALANCEADOS) ---
+    const powerWatts = finalEnginePower * 745.7;
+    const thrust = (powerWatts * propEfficiency) / (Math.max(100, Math.sqrt(totalWeight * 9.81))); // Empuxo estimado
+    
+    // Velocidade Máxima v_max = sqrt(Thrust / (0.5 * rho * A * Cd))
+    const totalDragCoefficient = dragCoefficient + (wingArea / 1000); // Adiciona arrasto induzido simplificado
+    const speed_ms = Math.sqrt(thrust / (0.5 * gameData.constants.air_density_sea_level * wingArea * totalDragCoefficient)) * performanceBonuses.speed;
     const finalSpeedKmh = Math.max(0, speed_ms * 3.6);
-    const rate_of_climb_ms = Math.max(0, (thrust / (totalWeight * 9.81)) * speed_ms * 0.1) * performanceBonuses.rate_of_climb;
-    const finalServiceCeiling = Math.max(0, (finalEnginePower / totalWeight) * 2500 * performanceBonuses.service_ceiling * superchargerData.ceiling_mod);
+
+    // Razão de Subida
+    const excessPower = thrust * speed_ms - (0.5 * gameData.constants.air_density_sea_level * Math.pow(speed_ms, 3) * wingArea * totalDragCoefficient);
+    const rate_of_climb_ms = Math.max(0, excessPower / (totalWeight * 9.81)) * performanceBonuses.rate_of_climb;
+    
+    // Teto de Serviço
+    const powerToWeightRatio = finalEnginePower / totalWeight;
+    const finalServiceCeiling = Math.max(0, (3000 + powerToWeightRatio * 15000) * performanceBonuses.service_ceiling * superchargerData.ceiling_mod);
+
+    // Manobrabilidade (Tempo de Curva)
+    const wingLoading = totalWeight / wingArea;
     const turn_radius = (Math.pow(speed_ms, 2)) / (9.81 * Math.sqrt(Math.pow(gameData.constants.turn_g_force, 2) - 1));
     let turn_time_s = (2 * Math.PI * turn_radius) / speed_ms;
     turn_time_s /= performanceBonuses.maneuverability;
-    turn_time_s = Math.max(8, turn_time_s);
-    const fuelConsumption = (finalEnginePower * gameData.constants.fuel_consumption_base_factor);
-    const fuelCapacity = gameData.constants.base_fuel_capacity_liters * (totalWeight / 2000);
-    const flightTimeHours = (fuelCapacity * 0.8) / (fuelConsumption * 3600);
-    const finalRangeKm = Math.max(0, flightTimeHours * finalSpeedKmh * 0.8) * performanceBonuses.range;
+    turn_time_s *= (1 + wingLoading / 500); // Penalidade por carga alar
+    turn_time_s = Math.max(10, Math.min(60, turn_time_s));
+
+    // Alcance
+    const fuelConsumptionKgS = powerWatts * gameData.constants.fuel_consumption_base_factor;
+    const fuelCapacityKg = gameData.constants.base_fuel_capacity_liters * (totalWeight / 2500) * 0.72; // Densidade da gasolina
+    const flightTimeHours = (fuelCapacityKg / fuelConsumptionKgS) / 3600;
+    const finalRangeKm = Math.max(0, flightTimeHours * finalSpeedKmh * 0.75) * performanceBonuses.range; // 0.75 = vel. de cruzeiro
+    
     const finalReliability = Math.max(5, Math.min(100, 100 * reliabilityModifier));
+
 
     // --- Atualização da UI ---
     document.getElementById('display_name').textContent = aircraftName;
@@ -493,6 +522,28 @@ function updateCalculations() {
         metalStatusEl.textContent = '✅ Saldo de metais suficiente.';
         metalStatusEl.className = 'text-sm font-medium mt-1 text-center status-ok';
     }
+    
+    // Lógica de Status Final
+    const statusEl = document.getElementById('status');
+    if (finalEnginePower > 0 && aircraftType) {
+         if (finalReliability < 70) {
+            statusEl.textContent = "🔥 Confiabilidade baixa: Propenso a falhas!";
+            statusEl.className = "status-indicator status-error";
+        } else if (finalSpeedKmh < 300 && typeData.name.includes('Caça')) {
+            statusEl.textContent = "⚠️ Caça muito lento para o combate aéreo.";
+            statusEl.className = "status-indicator status-warning";
+        } else if (turn_time_s > 25 && typeData.name.includes('Caça')) {
+            statusEl.textContent = "⚠️ Caça pouco manobrável.";
+            statusEl.className = "status-indicator status-warning";
+        } else {
+            statusEl.textContent = "✅ Design pronto para os céus! Clique no resumo para gerar a ficha.";
+            statusEl.className = "status-indicator status-ok";
+        }
+    } else {
+        statusEl.textContent = "Selecione o tipo de aeronave e um motor válido.";
+        statusEl.className = "status-indicator";
+    }
+
 
     // --- Retornar dados para a ficha ---
     return {
@@ -524,10 +575,16 @@ window.onload = function() {
     loadGameDataFromSheets();
     window.updateCalculations = updateCalculations;
 
-    document.querySelector('.summary-panel').addEventListener('click', () => {
+    const summaryPanel = document.querySelector('.summary-panel');
+    summaryPanel.style.cursor = 'pointer';
+    summaryPanel.title = 'Clique para gerar a ficha detalhada da aeronave';
+    summaryPanel.addEventListener('click', () => {
         const aircraftData = updateCalculations();
-        localStorage.setItem('aircraftSheetData', JSON.stringify(aircraftData));
-        localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft));
-        window.open('ficha.html', '_blank');
+        // Apenas gera a ficha se os dados forem válidos
+        if(aircraftData){
+            localStorage.setItem('aircraftSheetData', JSON.stringify(aircraftData));
+            localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft));
+            window.open('ficha.html', '_blank');
+        }
     });
 };
