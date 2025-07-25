@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criador de Aeronaves - RPG Forças Armadas 1918-1938</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonte Inter do Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Link para o arquivo de estilos CSS principal -->
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>✈️ Criador de Aeronaves</h1>
+            <p>Sistema de Criação de Aeronaves - RPG Forças Armadas 1918-1938</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Panel: Input Forms -->
+            <div class="form-sections col-span-1 lg:col-span-2 space-y-6">
+                <!-- Basic Info & Country Doctrine -->
+                <div class="form-section">
+                    <h3>📝 Informações da Aeronave e Doutrina</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="aircraft_name">Nome da Aeronave:</label>
+                            <input type="text" id="aircraft_name" placeholder="Ex: Supermarine Spitfire" oninput="updateCalculations()">
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantidade a Produzir:</label>
+                            <input type="number" id="quantity" min="1" max="999" value="1" oninput="updateCalculations()">
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label for="country_doctrine">País de Origem / Doutrina:</label>
+                        <select id="country_doctrine" onchange="updateCalculations()">
+                            <option value="loading">Carregando países...</option>
+                        </select>
+                        <p id="country_bonus_note" class="text-sm text-blue-600"></p>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label for="air_doctrine">Doutrina Aérea:</label>
+                        <select id="air_doctrine" onchange="updateCalculations()">
+                            <option value="">Selecione uma Doutrina...</option>
+                            <option value="air_superiority">Superioridade Aérea</option>
+                            <option value="strategic_bombing">Bombardeio Estratégico</option>
+                            <option value="ground_support">Apoio Tático</option>
+                            <option value="fleet_defense">Defesa de Frota</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Production vs Quality Slider -->
+                <div class="form-section">
+                    <h3>⚖️ Balanço Produção vs. Qualidade</h3>
+                    <div class="form-group">
+                        <label for="production_quality_slider" class="flex justify-between items-center">
+                            <span>Qualidade 💎</span>
+                            <span>Produção 🏭</span>
+                        </label>
+                        <input type="range" id="production_quality_slider" min="0" max="100" value="50" oninput="updateCalculations()">
+                    </div>
+                </div>
+
+                <!-- Airframe and Basic Configuration -->
+                <div class="form-section">
+                    <h3>✈️ Fuselagem e Configuração Base</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="aircraft_type">Tipo de Aeronave:</label>
+                            <select id="aircraft_type" onchange="updateCalculations()">
+                                <option value="">Selecione o tipo...</option>
+                                <option value="light_fighter">Caça Leve</option>
+                                <option value="heavy_fighter">Caça Pesado/Interceptor</option>
+                                <option value="cas">Apoio Aéreo Próximo (CAS)</option>
+                                <option value="tactical_bomber">Bombardeiro Tático</option>
+                                <option value="strategic_bomber">Bombardeiro Estratégico</option>
+                                <option value="zeppelin">Zeppelin</option>
+                                <option value="naval_fighter">Caça Naval</option>
+                                <option value="naval_cas">CAS Naval</option>
+                                <option value="naval_bomber">Bombardeiro Naval</option>
+                                <option value="naval_recon">Reconhecimento Naval</option>
+                                <option value="transport">Transporte</option>
+                                <option value="seaplane">Hidroavião</option>
+                            </select>
+                            <p id="aircraft_type_note" class="text-sm text-yellow-600 mt-1"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="structure_type">Material da Estrutura:</label>
+                            <select id="structure_type" onchange="updateCalculations()">
+                                <option value="wood_fabric">Madeira e Tecido</option>
+                                <option value="wood_metal">Madeira e Metal</option>
+                                <option value="all_metal">Metal Completo</option>
+                                <option value="duralumin">Duralumínio (Monocoque)</option>
+                            </select>
+                            <p id="structure_note" class="text-sm text-yellow-600 mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>⚙️ Motor e Propulsão</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="engine_type">Tipo de Motor:</label>
+                            <select id="engine_type" onchange="updateCalculations()">
+                                <option value="">Selecione um motor...</option>
+                                <option value="radial_7">Motor Radial 7 cilindros</option>
+                                <option value="radial_11">Motor Radial 11 cilindros</option>
+                                <option value="radial_16">Motor Radial 16 cilindros</option>
+                                <option value="radial_18">Motor Radial 18 cilindros</option>
+                                <option value="rotary_9">Motor Rotativo 9 cilindros</option>
+                                <option value="v8">Motor V8</option>
+                                <option value="v12">Motor V12</option>
+                                <option value="v16">Motor V16</option>
+                                <option value="v24">Motor V24</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="engine_power">Potência do Motor (HP):</label>
+                            <input type="number" id="engine_power" min="50" max="3000" value="500" step="10" oninput="updateCalculations()">
+                            <p id="engine_power_note" class="text-sm text-red-600 mt-1"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="propeller_type">Tipo de Hélice:</label>
+                            <select id="propeller_type" onchange="updateCalculations()">
+                                <option value="wood_2">Madeira 2 pás</option>
+                                <option value="wood_3">Madeira 3 pás</option>
+                                <option value="metal_2">Metal 2 pás</option>
+                                <option value="metal_3">Metal 3 pás</option>
+                                <option value="adjustable">Passo Ajustável</option>
+                            </select>
+                            <p id="propeller_type_note" class="text-sm text-yellow-600 mt-1"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="cooling_system">Sistema de Refrigeração:</label>
+                            <select id="cooling_system" onchange="updateCalculations()">
+                                <option value="air">Refrigeração a Ar</option>
+                                <option value="liquid">Refrigeração Líquida</option>
+                            </select>
+                            <p id="cooling_system_note" class="text-sm text-yellow-600 mt-1"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="fuel_feed">Alimentação de Combustível:</label>
+                            <select id="fuel_feed" onchange="updateCalculations()">
+                                <option value="carburetor">Carburador</option>
+                                <option value="injection">Injeção de Combustível</option>
+                            </select>
+                            <p id="fuel_feed_note" class="text-sm text-yellow-600 mt-1"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="supercharger">Sobrealimentação:</label>
+                            <select id="supercharger" onchange="updateCalculations()">
+                                <option value="none">Nenhum</option>
+                                <option value="single_stage">Mecânico - 1 Estágio</option>
+                                <option value="two_stage">Mecânico - 2 Estágios</option>
+                                <option value="turbo">Turboalimentador</option>
+                            </select>
+                            <p id="supercharger_note" class="text-sm text-yellow-600 mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section" id="armament-section">
+                    <h3>🔫 Armamentos</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div class="item-row">
+                            <label for="mg_30" class="tooltip">Metralhadora .30<span class="tooltiptext">Leve e rápida, boa contra alvos sem blindagem.</span></label>
+                            <input type="number" id="mg_30" min="0" max="8" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="mg_50" class="tooltip">Metralhadora .50<span class="tooltiptext">Poder de parada decente, eficaz contra caças e estruturas leves.</span></label>
+                            <input type="number" id="mg_50" min="0" max="8" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="cannon_20" class="tooltip">Canhão 20mm<span class="tooltiptext">Destrutivo, ideal para abater bombardeiros e caças mais resistentes.</span></label>
+                            <input type="number" id="cannon_20" min="0" max="6" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="cannon_30" class="tooltip">Canhão 30mm<span class="tooltiptext">Poder de fogo massivo, mas pesado e com baixa cadência/munição.</span></label>
+                            <input type="number" id="cannon_30" min="0" max="4" value="0" oninput="updateCalculations()">
+                        </div>
+                         <div class="item-row">
+                            <label for="cannon_37" class="tooltip">Canhão 37mm<span class="tooltiptext">Eficaz contra bombardeiros e alvos terrestres leves.</span></label>
+                            <input type="number" id="cannon_37" min="0" max="2" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="cannon_at_40" class="tooltip">Canhão Anti-Tanque 40mm<span class="tooltiptext">Adaptado para ataque ao solo, pode danificar blindados leves.</span></label>
+                            <input type="number" id="cannon_at_40" min="0" max="2" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="bomb_50" class="tooltip">Bombas 50kg<span class="tooltiptext">Pequenas, para uso anti-pessoal ou contra alvos não blindados.</span></label>
+                            <input type="number" id="bomb_50" min="0" max="20" value="0" oninput="updateCalculations()">
+                        </div>
+                         <div class="item-row">
+                            <label for="bomb_100" class="tooltip">Bombas 100kg<span class="tooltiptext">Carga padrão para bombardeiros táticos leves.</span></label>
+                            <input type="number" id="bomb_100" min="0" max="16" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="bomb_250" class="tooltip">Bombas 250kg<span class="tooltiptext">Poder destrutivo considerável, para alvos de infraestrutura.</span></label>
+                            <input type="number" id="bomb_250" min="0" max="8" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="bomb_500" class="tooltip">Bombas 500kg<span class="tooltiptext">Bomba pesada para destruir bunkers e edifícios.</span></label>
+                            <input type="number" id="bomb_500" min="0" max="4" value="0" oninput="updateCalculations()">
+                        </div>
+                         <div class="item-row">
+                            <label for="bomb_1000" class="tooltip">Bombas 1000kg<span class="tooltiptext">"Blockbuster". Capaz de destruir quarteirões inteiros.</span></label>
+                            <input type="number" id="bomb_1000" min="0" max="2" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="torpedo" class="tooltip">Torpedo Naval<span class="tooltiptext">Arma anti-navio. Pesada e requer um avião especializado.</span></label>
+                            <input type="number" id="torpedo" min="0" max="1" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="incendiary" class="tooltip">Bombas Incendiárias<span class="tooltiptext">Projetadas para espalhar fogo, eficazes contra cidades e florestas.</span></label>
+                            <input type="number" id="incendiary" min="0" max="10" value="0" oninput="updateCalculations()">
+                        </div>
+                        <div class="item-row">
+                            <label for="rockets" class="tooltip">Foguetes Ar-Terra<span class="tooltiptext">Imprecisos mas bons para saturar uma área. Eficazes contra infantaria e veículos leves.</span></label>
+                            <input type="number" id="rockets" min="0" max="16" value="0" oninput="updateCalculations()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" id="protection-section">
+                    <h3>🛡️ Proteção</h3>
+                    <div class="space-y-2">
+                        <div class="item-row"><input type="checkbox" id="pilot_armor" onchange="updateCalculations()"><label for="pilot_armor" class="tooltip">Blindagem do Piloto<span class="tooltiptext">Placas de aço ao redor do cockpit para proteger o piloto. Aumenta o peso.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="engine_armor" onchange="updateCalculations()"><label for="engine_armor" class="tooltip">Blindagem do Motor<span class="tooltiptext">Proteção para componentes vitais do motor, aumentando a chance de sobreviver a danos.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="tank_armor" onchange="updateCalculations()"><label for="tank_armor" class="tooltip">Blindagem dos Tanques<span class="tooltiptext">Placas de blindagem ao redor dos tanques de combustível para reduzir o risco de incêndio.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="self_sealing_tanks" onchange="updateCalculations()"><label for="self_sealing_tanks" class="tooltip">Tanques Auto-Selantes<span class="tooltiptext">Tanques com revestimento de borracha que selam pequenos furos, reduzindo drasticamente o risco de incêndios e vazamentos.</span></label></div>
+                    </div>
+                </div>
+
+                <div class="form-section" id="equipment-section">
+                    <h3>📡 Equipamentos</h3>
+                    <div class="space-y-2">
+                        <div class="item-row"><input type="checkbox" id="parachute" onchange="updateCalculations()"><label for="parachute" class="tooltip">Paraquedas<span class="tooltiptext">Equipamento de segurança básico para a tripulação. Aumenta a moral.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="ejection_seat" onchange="updateCalculations()"><label for="ejection_seat" class="tooltip">Assento Ejetável (Exp.)<span class="tooltiptext">Tecnologia experimental e muito rara que permite a ejeção segura em alta velocidade. Pesado e caro.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="fire_extinguisher" onchange="updateCalculations()"><label for="fire_extinguisher" class="tooltip">Sistema Anti-Incêndio<span class="tooltiptext">Sistema para apagar incêndios no motor, aumentando muito a sobrevivência da aeronave.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="radio_hf" onchange="updateCalculations()"><label for="radio_hf" class="tooltip">Rádio HF<span class="tooltiptext">Permite comunicação de longa distância e coordenação tática. Essencial para caças e bombardeiros.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="nav_instruments" onchange="updateCalculations()"><label for="nav_instruments" class="tooltip">Instrumentos de Navegação<span class="tooltiptext">Auxilia na navegação em longas distâncias ou em mau tempo. Essencial para bombardeiros e patrulha naval.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="gyro_compass" onchange="updateCalculations()"><label for="gyro_compass" class="tooltip">Bússola Giroscópica<span class="tooltiptext">Mais precisa que uma bússola magnética, essencial para navegação precisa e voo por instrumentos.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="gun_synchronizer" onchange="updateCalculations()"><label for="gun_synchronizer" class="tooltip">Sincronizador de Metralhadoras<span class="tooltiptext">Permite atirar através do arco da hélice. Essencial para caças, mas é um sistema complexo que pode falhar.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="retractable_gear" onchange="updateCalculations()"><label for="retractable_gear" class="tooltip">Trem de Pouso Retrátil<span class="tooltiptext">Reduz drasticamente o arrasto, aumentando a velocidade. Adiciona peso e complexidade mecânica.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="pressurized_cabin" onchange="updateCalculations()"><label for="pressurized_cabin" class="tooltip">Cabine Pressurizada<span class="tooltiptext">Permite operações em altitudes muito elevadas sem a necessidade constante de máscaras de oxigênio. Aumenta o teto de serviço.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="dive_brakes" onchange="updateCalculations()"><label for="dive_brakes" class="tooltip">Freios de Mergulho<span class="tooltiptext">Permite mergulhos controlados em alta velocidade para bombardeio preciso. Essencial para bombardeiros de mergulho.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="sirens" onchange="updateCalculations()"><label for="sirens" class="tooltip">Sirenes Psicológicas<span class="tooltiptext">Gera um som aterrorizante durante o mergulho para guerra psicológica. Sem efeito prático na performance.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="jato" onchange="updateCalculations()"><label for="jato" class="tooltip">Foguetes Auxiliares (JATO)<span class="tooltiptext">Foguetes de uso único para decolagens curtas, especialmente para bombardeiros pesados ou de pistas improvisadas.</span></label></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>👥 Tripulação</h3>
+                    <div class="form-group">
+                        <label for="num_crewmen">Número de Tripulantes:</label>
+                        <input type="number" id="num_crewmen" min="1" max="20" value="1" oninput="updateCalculations()">
+                        <p id="crew_note" class="text-sm text-yellow-600 mt-1"></p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="summary-panel">
+                <h3>📊 Resumo da Aeronave</h3>
+
+                <div class="bg-gray-100 p-4 rounded-lg space-y-2" style="border: 1px solid #e0e0e0;">
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Nome:</span>
+                        <span id="display_name" class="font-medium" style="color: #007bff;">Sem nome</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Tipo:</span>
+                        <span id="display_type" class="font-medium" style="color: #007bff;">-</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Doutrina:</span>
+                        <span id="display_doctrine" class="font-medium" style="color: #007bff;">-</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Custo/Unid:</span>
+                        <span id="unit_cost" class="font-medium" style="color: #007bff;">0</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Peso Total:</span>
+                        <span id="total_weight" class="font-medium" style="color: #007bff;">0 kg</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Potência Total:</span>
+                        <span id="total_power" class="font-medium" style="color: #007bff;">0 hp</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100 p-4 rounded-lg space-y-2 mt-4" style="border: 1px solid #e0e0e0;">
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Velocidade Máxima:</span>
+                        <span id="speed_max" class="font-medium" style="color: #28a745;">0 km/h</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Razão de Subida:</span>
+                        <span id="rate_of_climb" class="font-medium" style="color: #28a745;">0 m/s</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Teto de Serviço:</span>
+                        <span id="service_ceiling" class="font-medium" style="color: #28a745;">0 m</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Alcance:</span>
+                        <span id="max_range" class="font-medium" style="color: #28a745;">0 km</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Manobrabilidade (Tempo de Curva):</span>
+                        <span id="turn_time" class="font-medium" style="color: #28a745;">0 s</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Armamento:</span>
+                        <span id="main_armament" class="font-medium" style="color: #28a745;">N/A</span>
+                    </div>
+                     <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Confiabilidade:</span>
+                        <span id="reliability_display" class="font-medium" style="color: #28a745;">0%</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100 p-4 rounded-lg space-y-2 mt-4" style="border: 1px solid #e0e0e0;">
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold" id="total_cost_label">Custo Total (1x):</span>
+                        <span id="total_production_cost" class="text-xl font-bold" style="color: #007bff;">0</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Custo em Metal (Total):</span>
+                        <span id="total_metal_cost" class="text-xl font-bold" style="color: #ffc107;">0</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100 p-4 rounded-lg space-y-2 mt-4" style="border: 1px solid #e0e0e0;">
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Capacidade de Produção (País):</span>
+                        <span id="country_production_capacity" class="font-medium" style="color: #6f42c1;">N/A</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Unidades Produzíveis (Max):</span>
+                        <span id="producible_units" class="font-medium" style="color: #6f42c1;">N/A</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Saldo de Metais (País):</span>
+                        <span id="country_metal_balance" class="font-medium" style="color: #dc3545;">N/A</span>
+                    </div>
+                    <div id="metal_balance_status" class="text-sm font-medium mt-1 text-center" style="color: #495057;"></div>
+                </div>
+
+                <div id="status" class="status-indicator" style="background: #f8f9fa; color: #495057; border: 1px solid #dee2e6;">
+                    Selecione o tipo de aeronave e motor para começar
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link para o arquivo JavaScript principal -->
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
