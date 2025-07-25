@@ -255,6 +255,9 @@
                         <div class="item-row"><input type="checkbox" id="dive_brakes" onchange="updateCalculations()"><label for="dive_brakes">Freios de Mergulho</label></div>
                         <div class="item-row"><input type="checkbox" id="sirens" onchange="updateCalculations()"><label for="sirens">Sirenes Psicológicas</label></div>
                         <div class="item-row"><input type="checkbox" id="jato" onchange="updateCalculations()"><label for="jato">Foguetes Auxiliares (JATO)</label></div>
+                        <div class="item-row"><input type="checkbox" id="extra_fuel_tanks" onchange="updateCalculations()"><label for="extra_fuel_tanks">Tanques de Combustíveis Extras (Fixos)</label></div>
+                        <div class="item-row"><input type="checkbox" id="drop_tanks" onchange="updateCalculations()"><label for="drop_tanks">Tanques de Combustíveis Descartáveis</label></div>
+                        <div class="item-row"><input type="checkbox" id="advanced_control_surfaces" onchange="updateCalculations()"><label for="advanced_control_surfaces">Superfícies de Controle Avançadas</label></div>
                     </div>
                 </div>
 
@@ -301,8 +304,12 @@
 
                 <div class="bg-gray-100 p-4 rounded-lg space-y-2 mt-4" style="border: 1px solid #e0e0e0;">
                     <div class="flex justify-between items-center" style="color: #495057;">
-                        <span class="font-semibold">Velocidade Máxima:</span>
-                        <span id="speed_max" class="font-medium" style="color: #28a745;">0 km/h</span>
+                        <span class="font-semibold">Velocidade Máx. (Nível do Mar):</span>
+                        <span id="speed_max_sl" class="font-medium" style="color: #28a745;">0 km/h</span>
+                    </div>
+                    <div class="flex justify-between items-center" style="color: #495057;">
+                        <span class="font-semibold">Velocidade Máx. (Altitude Ótima):</span>
+                        <span id="speed_max_alt" class="font-medium" style="color: #28a745;">0 km/h</span>
                     </div>
                     <div class="flex justify-between items-center" style="color: #495057;">
                         <span class="font-semibold">Razão de Subida:</span>
