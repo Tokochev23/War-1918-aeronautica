@@ -36,11 +36,11 @@
                         </div>
                     </div>
                     <div class="form-group mt-4">
-                        <label for="country_doctrine">País de Origem / Doutrina:</label>
+                        <label for="country_doctrine">País de Origem:</label>
                         <select id="country_doctrine" onchange="updateCalculations()">
                             <option value="loading">Carregando países...</option>
                         </select>
-                        <p id="country_bonus_note" class="text-sm text-blue-600"></p>
+                        <p id="country_bonus_note" class="text-sm text-blue-600 mt-1"></p>
                     </div>
                     <div class="form-group mt-4">
                         <label for="air_doctrine">Doutrina Aérea:</label>
@@ -51,6 +51,7 @@
                             <option value="ground_support">Apoio Tático</option>
                             <option value="fleet_defense">Defesa de Frota</option>
                         </select>
+                        <p id="doctrine_note" class="text-sm text-yellow-700 mt-1"></p>
                     </div>
                 </div>
 
@@ -63,6 +64,7 @@
                             <span>Produção 🏭</span>
                         </label>
                         <input type="range" id="production_quality_slider" min="0" max="100" value="50" oninput="updateCalculations()">
+                        <p id="production_quality_note" class="text-sm text-center mt-2 text-gray-600"></p>
                     </div>
                 </div>
 
@@ -87,7 +89,7 @@
                                 <option value="transport">Transporte</option>
                                 <option value="seaplane">Hidroavião</option>
                             </select>
-                            <p id="aircraft_type_note" class="text-sm text-yellow-600 mt-1"></p>
+                            <p id="aircraft_type_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                         <div class="form-group">
                             <label for="structure_type">Material da Estrutura:</label>
@@ -97,7 +99,7 @@
                                 <option value="all_metal">Metal Completo</option>
                                 <option value="duralumin">Duralumínio (Monocoque)</option>
                             </select>
-                            <p id="structure_note" class="text-sm text-yellow-600 mt-1"></p>
+                            <p id="structure_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                     </div>
                 </div>
@@ -119,6 +121,7 @@
                                 <option value="v16">Motor V16</option>
                                 <option value="v24">Motor V24</option>
                             </select>
+                            <p id="engine_type_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                         <div class="form-group">
                             <label for="engine_power">Potência do Motor (HP):</label>
@@ -132,9 +135,9 @@
                                 <option value="wood_3">Madeira 3 pás</option>
                                 <option value="metal_2">Metal 2 pás</option>
                                 <option value="metal_3">Metal 3 pás</option>
-                                <option value="adjustable">Passo Ajustável</option>
+                                <option value="adjustable">Passo Variável/Vel. Constante</option>
                             </select>
-                            <p id="propeller_type_note" class="text-sm text-yellow-600 mt-1"></p>
+                            <p id="propeller_type_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                         <div class="form-group">
                             <label for="cooling_system">Sistema de Refrigeração:</label>
@@ -142,7 +145,7 @@
                                 <option value="air">Refrigeração a Ar</option>
                                 <option value="liquid">Refrigeração Líquida</option>
                             </select>
-                            <p id="cooling_system_note" class="text-sm text-yellow-600 mt-1"></p>
+                            <p id="cooling_system_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                         <div class="form-group">
                             <label for="fuel_feed">Alimentação de Combustível:</label>
@@ -150,7 +153,7 @@
                                 <option value="carburetor">Carburador</option>
                                 <option value="injection">Injeção de Combustível</option>
                             </select>
-                            <p id="fuel_feed_note" class="text-sm text-yellow-600 mt-1"></p>
+                            <p id="fuel_feed_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                         <div class="form-group">
                             <label for="supercharger">Sobrealimentação:</label>
@@ -160,7 +163,7 @@
                                 <option value="two_stage">Mecânico - 2 Estágios</option>
                                 <option value="turbo">Turboalimentador</option>
                             </select>
-                            <p id="supercharger_note" class="text-sm text-yellow-600 mt-1"></p>
+                            <p id="supercharger_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                     </div>
                 </div>
@@ -169,59 +172,59 @@
                     <h3>🔫 Armamentos</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         <div class="item-row">
-                            <label for="mg_30" class="tooltip">Metralhadora .30<span class="tooltiptext">Leve e rápida, boa contra alvos sem blindagem.</span></label>
+                            <label for="mg_30">Metralhadora .30 (7.62mm)</label>
                             <input type="number" id="mg_30" min="0" max="8" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="mg_50" class="tooltip">Metralhadora .50<span class="tooltiptext">Poder de parada decente, eficaz contra caças e estruturas leves.</span></label>
+                            <label for="mg_50">Metralhadora .50 (12.7mm)</label>
                             <input type="number" id="mg_50" min="0" max="8" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="cannon_20" class="tooltip">Canhão 20mm<span class="tooltiptext">Destrutivo, ideal para abater bombardeiros e caças mais resistentes.</span></label>
+                            <label for="cannon_20">Canhão 20mm</label>
                             <input type="number" id="cannon_20" min="0" max="6" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="cannon_30" class="tooltip">Canhão 30mm<span class="tooltiptext">Poder de fogo massivo, mas pesado e com baixa cadência/munição.</span></label>
+                            <label for="cannon_30">Canhão 30mm</label>
                             <input type="number" id="cannon_30" min="0" max="4" value="0" oninput="updateCalculations()">
                         </div>
                          <div class="item-row">
-                            <label for="cannon_37" class="tooltip">Canhão 37mm<span class="tooltiptext">Eficaz contra bombardeiros e alvos terrestres leves.</span></label>
+                            <label for="cannon_37">Canhão 37mm</label>
                             <input type="number" id="cannon_37" min="0" max="2" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="cannon_at_40" class="tooltip">Canhão Anti-Tanque 40mm<span class="tooltiptext">Adaptado para ataque ao solo, pode danificar blindados leves.</span></label>
+                            <label for="cannon_at_40">Canhão Anti-Tanque 40mm</label>
                             <input type="number" id="cannon_at_40" min="0" max="2" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="bomb_50" class="tooltip">Bombas 50kg<span class="tooltiptext">Pequenas, para uso anti-pessoal ou contra alvos não blindados.</span></label>
+                            <label for="bomb_50">Bombas 50kg</label>
                             <input type="number" id="bomb_50" min="0" max="20" value="0" oninput="updateCalculations()">
                         </div>
                          <div class="item-row">
-                            <label for="bomb_100" class="tooltip">Bombas 100kg<span class="tooltiptext">Carga padrão para bombardeiros táticos leves.</span></label>
+                            <label for="bomb_100">Bombas 100kg</label>
                             <input type="number" id="bomb_100" min="0" max="16" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="bomb_250" class="tooltip">Bombas 250kg<span class="tooltiptext">Poder destrutivo considerável, para alvos de infraestrutura.</span></label>
+                            <label for="bomb_250">Bombas 250kg</label>
                             <input type="number" id="bomb_250" min="0" max="8" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="bomb_500" class="tooltip">Bombas 500kg<span class="tooltiptext">Bomba pesada para destruir bunkers e edifícios.</span></label>
+                            <label for="bomb_500">Bombas 500kg</label>
                             <input type="number" id="bomb_500" min="0" max="4" value="0" oninput="updateCalculations()">
                         </div>
                          <div class="item-row">
-                            <label for="bomb_1000" class="tooltip">Bombas 1000kg<span class="tooltiptext">"Blockbuster". Capaz de destruir quarteirões inteiros.</span></label>
+                            <label for="bomb_1000">Bombas 1000kg</label>
                             <input type="number" id="bomb_1000" min="0" max="2" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="torpedo" class="tooltip">Torpedo Naval<span class="tooltiptext">Arma anti-navio. Pesada e requer um avião especializado.</span></label>
+                            <label for="torpedo">Torpedo Naval</label>
                             <input type="number" id="torpedo" min="0" max="1" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="incendiary" class="tooltip">Bombas Incendiárias<span class="tooltiptext">Projetadas para espalhar fogo, eficazes contra cidades e florestas.</span></label>
+                            <label for="incendiary">Bombas Incendiárias</label>
                             <input type="number" id="incendiary" min="0" max="10" value="0" oninput="updateCalculations()">
                         </div>
                         <div class="item-row">
-                            <label for="rockets" class="tooltip">Foguetes Ar-Terra<span class="tooltiptext">Imprecisos mas bons para saturar uma área. Eficazes contra infantaria e veículos leves.</span></label>
+                            <label for="rockets">Foguetes Ar-Terra</label>
                             <input type="number" id="rockets" min="0" max="16" value="0" oninput="updateCalculations()">
                         </div>
                     </div>
@@ -230,28 +233,28 @@
                 <div class="form-section" id="protection-section">
                     <h3>🛡️ Proteção</h3>
                     <div class="space-y-2">
-                        <div class="item-row"><input type="checkbox" id="pilot_armor" onchange="updateCalculations()"><label for="pilot_armor" class="tooltip">Blindagem do Piloto<span class="tooltiptext">Placas de aço ao redor do cockpit para proteger o piloto. Aumenta o peso.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="engine_armor" onchange="updateCalculations()"><label for="engine_armor" class="tooltip">Blindagem do Motor<span class="tooltiptext">Proteção para componentes vitais do motor, aumentando a chance de sobreviver a danos.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="tank_armor" onchange="updateCalculations()"><label for="tank_armor" class="tooltip">Blindagem dos Tanques<span class="tooltiptext">Placas de blindagem ao redor dos tanques de combustível para reduzir o risco de incêndio.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="self_sealing_tanks" onchange="updateCalculations()"><label for="self_sealing_tanks" class="tooltip">Tanques Auto-Selantes<span class="tooltiptext">Tanques com revestimento de borracha que selam pequenos furos, reduzindo drasticamente o risco de incêndios e vazamentos.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="pilot_armor" onchange="updateCalculations()"><label for="pilot_armor">Blindagem do Piloto</label></div>
+                        <div class="item-row"><input type="checkbox" id="engine_armor" onchange="updateCalculations()"><label for="engine_armor">Blindagem do Motor</label></div>
+                        <div class="item-row"><input type="checkbox" id="tank_armor" onchange="updateCalculations()"><label for="tank_armor">Blindagem dos Tanques</label></div>
+                        <div class="item-row"><input type="checkbox" id="self_sealing_tanks" onchange="updateCalculations()"><label for="self_sealing_tanks">Tanques Auto-Selantes</label></div>
                     </div>
                 </div>
 
                 <div class="form-section" id="equipment-section">
                     <h3>📡 Equipamentos</h3>
                     <div class="space-y-2">
-                        <div class="item-row"><input type="checkbox" id="parachute" onchange="updateCalculations()"><label for="parachute" class="tooltip">Paraquedas<span class="tooltiptext">Equipamento de segurança básico para a tripulação. Aumenta a moral.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="ejection_seat" onchange="updateCalculations()"><label for="ejection_seat" class="tooltip">Assento Ejetável (Exp.)<span class="tooltiptext">Tecnologia experimental e muito rara que permite a ejeção segura em alta velocidade. Pesado e caro.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="fire_extinguisher" onchange="updateCalculations()"><label for="fire_extinguisher" class="tooltip">Sistema Anti-Incêndio<span class="tooltiptext">Sistema para apagar incêndios no motor, aumentando muito a sobrevivência da aeronave.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="radio_hf" onchange="updateCalculations()"><label for="radio_hf" class="tooltip">Rádio HF<span class="tooltiptext">Permite comunicação de longa distância e coordenação tática. Essencial para caças e bombardeiros.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="nav_instruments" onchange="updateCalculations()"><label for="nav_instruments" class="tooltip">Instrumentos de Navegação<span class="tooltiptext">Auxilia na navegação em longas distâncias ou em mau tempo. Essencial para bombardeiros e patrulha naval.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="gyro_compass" onchange="updateCalculations()"><label for="gyro_compass" class="tooltip">Bússola Giroscópica<span class="tooltiptext">Mais precisa que uma bússola magnética, essencial para navegação precisa e voo por instrumentos.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="gun_synchronizer" onchange="updateCalculations()"><label for="gun_synchronizer" class="tooltip">Sincronizador de Metralhadoras<span class="tooltiptext">Permite atirar através do arco da hélice. Essencial para caças, mas é um sistema complexo que pode falhar.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="retractable_gear" onchange="updateCalculations()"><label for="retractable_gear" class="tooltip">Trem de Pouso Retrátil<span class="tooltiptext">Reduz drasticamente o arrasto, aumentando a velocidade. Adiciona peso e complexidade mecânica.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="pressurized_cabin" onchange="updateCalculations()"><label for="pressurized_cabin" class="tooltip">Cabine Pressurizada<span class="tooltiptext">Permite operações em altitudes muito elevadas sem a necessidade constante de máscaras de oxigênio. Aumenta o teto de serviço.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="dive_brakes" onchange="updateCalculations()"><label for="dive_brakes" class="tooltip">Freios de Mergulho<span class="tooltiptext">Permite mergulhos controlados em alta velocidade para bombardeio preciso. Essencial para bombardeiros de mergulho.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="sirens" onchange="updateCalculations()"><label for="sirens" class="tooltip">Sirenes Psicológicas<span class="tooltiptext">Gera um som aterrorizante durante o mergulho para guerra psicológica. Sem efeito prático na performance.</span></label></div>
-                        <div class="item-row"><input type="checkbox" id="jato" onchange="updateCalculations()"><label for="jato" class="tooltip">Foguetes Auxiliares (JATO)<span class="tooltiptext">Foguetes de uso único para decolagens curtas, especialmente para bombardeiros pesados ou de pistas improvisadas.</span></label></div>
+                        <div class="item-row"><input type="checkbox" id="parachute" onchange="updateCalculations()"><label for="parachute">Paraquedas</label></div>
+                        <div class="item-row"><input type="checkbox" id="ejection_seat" onchange="updateCalculations()"><label for="ejection_seat">Assento Ejetável (Exp.)</label></div>
+                        <div class="item-row"><input type="checkbox" id="fire_extinguisher" onchange="updateCalculations()"><label for="fire_extinguisher">Sistema Anti-Incêndio</label></div>
+                        <div class="item-row"><input type="checkbox" id="radio_hf" onchange="updateCalculations()"><label for="radio_hf">Rádio HF</label></div>
+                        <div class="item-row"><input type="checkbox" id="nav_instruments" onchange="updateCalculations()"><label for="nav_instruments">Instrumentos de Navegação</label></div>
+                        <div class="item-row"><input type="checkbox" id="gyro_compass" onchange="updateCalculations()"><label for="gyro_compass">Bússola Giroscópica</label></div>
+                        <div class="item-row"><input type="checkbox" id="gun_synchronizer" onchange="updateCalculations()"><label for="gun_synchronizer">Sincronizador de Metralhadoras</label></div>
+                        <div class="item-row"><input type="checkbox" id="retractable_gear" onchange="updateCalculations()"><label for="retractable_gear">Trem de Pouso Retrátil</label></div>
+                        <div class="item-row"><input type="checkbox" id="pressurized_cabin" onchange="updateCalculations()"><label for="pressurized_cabin">Cabine Pressurizada</label></div>
+                        <div class="item-row"><input type="checkbox" id="dive_brakes" onchange="updateCalculations()"><label for="dive_brakes">Freios de Mergulho</label></div>
+                        <div class="item-row"><input type="checkbox" id="sirens" onchange="updateCalculations()"><label for="sirens">Sirenes Psicológicas</label></div>
+                        <div class="item-row"><input type="checkbox" id="jato" onchange="updateCalculations()"><label for="jato">Foguetes Auxiliares (JATO)</label></div>
                     </div>
                 </div>
 
@@ -260,7 +263,7 @@
                     <div class="form-group">
                         <label for="num_crewmen">Número de Tripulantes:</label>
                         <input type="number" id="num_crewmen" min="1" max="20" value="1" oninput="updateCalculations()">
-                        <p id="crew_note" class="text-sm text-yellow-600 mt-1"></p>
+                        <p id="crew_note" class="text-sm text-gray-600 mt-1"></p>
                     </div>
                 </div>
 
