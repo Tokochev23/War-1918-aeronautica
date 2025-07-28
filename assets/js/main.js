@@ -402,17 +402,17 @@ function updateCalculations() {
         productionQualitySliderValue: parseInt(document.getElementById('production_quality_slider').value),
         defensiveTurretType: document.getElementById('defensive_turret_type').value,
         checkboxes: {
-            wing_features: Array.from(document.querySelectorAll('#wing-configuration-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            engine_enhancements: Array.from(document.querySelectorAll('#engine-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            protection: Array.from(document.querySelectorAll('#protection-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            cockpit_comfort: Array.from(document.querySelectorAll('#cockpit-comfort-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            advanced_avionics: Array.from(document.querySelectorAll('#advanced-avionics-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            equipment: Array.from(document.querySelectorAll('#equipment-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            maintainability_features: Array.from(document.querySelectorAll('#reliability-maintainability-section input[type="checkbox"]:checked')).map(cb => cb.id),
+            wing_features: Array.from(document.querySelectorAll('#wing_features_checkboxes input:checked')).map(cb => cb.id),
+            engine_enhancements: Array.from(document.querySelectorAll('#engine_enhancements_checkboxes input:checked')).map(cb => cb.id),
+            protection: Array.from(document.querySelectorAll('#protection_checkboxes input:checked')).map(cb => cb.id),
+            cockpit_comfort: Array.from(document.querySelectorAll('#cockpit_comfort_checkboxes input:checked')).map(cb => cb.id),
+            advanced_avionics: Array.from(document.querySelectorAll('#advanced_avionics_checkboxes input:checked')).map(cb => cb.id),
+            equipment: Array.from(document.querySelectorAll('#equipment_checkboxes input:checked')).map(cb => cb.id),
+            maintainability_features: Array.from(document.querySelectorAll('#maintainability_features_checkboxes input:checked')).map(cb => cb.id),
         },
         armaments: {
-            offensive: Array.from(document.querySelectorAll('#armament-section input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 })),
-            defensive: Array.from(document.querySelectorAll('#defensive-armaments-section input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 }))
+            offensive: Array.from(document.querySelectorAll('#offensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 })),
+            defensive: Array.from(document.querySelectorAll('#defensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 }))
         }
     };
     
@@ -442,7 +442,7 @@ function updateCalculations() {
 
     if (!typeData || !engineData || inputs.enginePower <= 0) {
         document.getElementById('status').textContent = "Selecione o tipo de aeronave e um motor com potência válida para começar.";
-        document.getElementById('status').className = "status-indicator";
+        document.getElementById('status').className = "p-3 rounded-lg text-center text-sm font-medium bg-gray-100 text-gray-600";
         return null;
     }
     
@@ -614,12 +614,11 @@ function updateCalculations() {
     // --- ENFORCE PERFORMANCE LIMITS (CAPPING) ---
     let finalSpeedKmhSL = rawSpeedKmhSL;
     let finalSpeedKmhAlt = rawSpeedKmhAlt;
-    // Apply the balance factor to the range
     let finalRangeKm = rawRangeKm / gameData.constants.range_balance_factor;
 
     if (typeData.limits) {
         finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, typeData.limits.max_speed);
-        finalSpeedKmhSL = Math.min(finalSpeedKmhSL, typeData.limits.max_speed); // Also cap SL speed
+        finalSpeedKmhSL = Math.min(finalSpeedKmhSL, typeData.limits.max_speed);
         finalRangeKm = Math.min(finalRangeKm, typeData.limits.max_range);
     }
 
@@ -677,10 +676,10 @@ function updateCalculations() {
         const metalStatusEl = document.getElementById('metal_balance_status');
         if (totalMetalCost > countryData.metal_balance) {
             metalStatusEl.textContent = '⚠️ Saldo de metais insuficiente!';
-            metalStatusEl.className = 'text-sm font-medium mt-1 text-center status-warning';
+            metalStatusEl.className = 'text-xs font-medium mt-1 text-center text-red-600';
         } else {
             metalStatusEl.textContent = '✅ Saldo de metais suficiente.';
-            metalStatusEl.className = 'text-sm font-medium mt-1 text-center status-ok';
+            metalStatusEl.className = 'text-xs font-medium mt-1 text-center text-green-600';
         }
     }
 
@@ -698,14 +697,14 @@ function updateCalculations() {
     if (typeData.limits) {
         if (rawSpeedKmhAlt < typeData.limits.min_speed) warnings.push({ type: 'warning', text: `⚠️ Velocidade abaixo do esperado para um ${typeData.name} (${Math.round(rawSpeedKmhAlt)} km/h).` });
         if (rawSpeedKmhAlt > typeData.limits.max_speed) warnings.push({ type: 'warning', text: `⚠️ Velocidade acima do esperado para um ${typeData.name}. (Calculado: ${Math.round(rawSpeedKmhAlt)} km/h, Limitado a: ${typeData.limits.max_speed} km/h)` });
-        if (rawRangeKm > typeData.limits.max_range * gameData.constants.range_balance_factor) warnings.push({ type: 'warning', text: `⚠️ Alcance acima do esperado para um ${typeData.name}. (Calculado: ${Math.round(rawRangeKm / gameData.constants.range_balance_factor)} km, Limitado a: ${typeData.limits.max_range} km)` });
+        if (rawRangeKm / gameData.constants.range_balance_factor > typeData.limits.max_range) warnings.push({ type: 'warning', text: `⚠️ Alcance acima do esperado. (Calculado: ${Math.round(rawRangeKm / gameData.constants.range_balance_factor)} km, Limitado a: ${typeData.limits.max_range} km)` });
     }
     if (warnings.length === 0) {
         warnings.push({ type: 'ok', text: '✅ Design pronto para os céus! Clique no ícone de relatório para gerar a ficha.' });
     }
     warnings.forEach(warning => {
         const statusEl = document.createElement('div');
-        statusEl.className = `status-indicator status-${warning.type}`;
+        statusEl.className = `p-3 rounded-lg text-center text-sm font-medium status-${warning.type}`;
         statusEl.textContent = warning.text;
         statusContainer.appendChild(statusEl);
     });
@@ -762,27 +761,70 @@ function updateCalculations() {
     };
 }
 
-// --- INICIALIZAÇÃO ---
-window.onload = function() {
-    loadGameDataFromSheets();
-    window.updateCalculations = updateCalculations;
+// --- FUNÇÕES DE UI (NOVO LAYOUT) ---
+let currentStep = 1;
 
-    const summaryPanel = document.getElementById('summary_panel_clickable');
-    summaryPanel.addEventListener('click', () => {
-        const aircraftData = updateCalculations();
-        if(aircraftData){
-            localStorage.setItem('aircraftSheetData', JSON.stringify(aircraftData));
-            // Pass the constant array directly to local storage to ensure consistency
-            localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft));
-            window.open('ficha.html', '_blank');
-        } else {
-            console.error("Não foi possível gerar a ficha: dados da aeronave são inválidos.");
-            const statusContainer = document.getElementById('status-container');
-            statusContainer.innerHTML = ''; // Clear previous messages
-            const errorEl = document.createElement('div');
-            errorEl.className = 'status-indicator status-error';
-            errorEl.textContent = '🔥 Erro: Preencha os campos obrigatórios para gerar a ficha.';
-            statusContainer.appendChild(errorEl);
+function toggleStep(step) {
+    const content = document.getElementById(`step_${step}_content`);
+    const icon = document.getElementById(`step_${step}_icon`);
+    const card = document.getElementById(`step_${step}`);
+    
+    if (content.classList.contains('hidden')) {
+        for (let i = 1; i <= 5; i++) {
+            if (i !== step) {
+                document.getElementById(`step_${i}_content`).classList.add('hidden');
+                document.getElementById(`step_${i}_icon`).classList.remove('rotate-180');
+                document.getElementById(`step_${i}`).classList.remove('active');
+            }
+        }
+        content.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+        card.classList.add('active');
+        currentStep = step;
+    } else {
+        content.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+        card.classList.remove('active');
+    }
+}
+
+function updateProgress() {
+    const requiredFields = ['aircraft_name', 'country_doctrine', 'air_doctrine', 'aircraft_type', 'engine_type'];
+    let completedFields = 0;
+    requiredFields.forEach(id => {
+        const field = document.getElementById(id);
+        if (field && field.value && field.value !== '' && field.value !== 'loading') {
+            completedFields++;
         }
     });
+    const progress = (completedFields / requiredFields.length) * 100;
+    document.getElementById('progress_bar').style.width = `${progress}%`;
+}
+
+function generateSheet() {
+    const aircraftData = updateCalculations();
+    if (aircraftData) {
+        localStorage.setItem('aircraftSheetData', JSON.stringify(aircraftData));
+        localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft));
+        window.open('ficha.html', '_blank');
+    } else {
+        const statusContainer = document.getElementById('status-container');
+        statusContainer.innerHTML = '';
+        const errorEl = document.createElement('div');
+        errorEl.className = 'p-3 rounded-lg text-center text-sm font-medium status-error';
+        errorEl.textContent = '🔥 Erro: Preencha os campos obrigatórios para gerar a ficha.';
+        statusContainer.appendChild(errorEl);
+    }
+}
+
+// --- INICIALIZAÇÃO ---
+window.onload = function() {
+    loadGameDataFromSheets().then(() => {
+        toggleStep(1); // Open the first step by default
+        updateCalculations();
+    });
+    // Attach functions to window object to be accessible from HTML onclick
+    window.toggleStep = toggleStep;
+    window.updateCalculations = updateCalculations;
+    window.generateSheet = generateSheet;
 };
