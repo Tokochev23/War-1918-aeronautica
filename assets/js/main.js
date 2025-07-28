@@ -163,7 +163,8 @@ const gameData = {
         pressure_sea_level_pa: 101325,
         density_sea_level_kg_m3: 1.225,
         turn_g_force: 4.5, // Fator G estrutural médio para caças
-        base_fuel_capacity_liters: 380, // Reduzido para balancear o alcance
+        base_fuel_capacity_liters: 380, // Baseado em um caça médio como o Spitfire
+        range_balance_factor: 1.7, // Fator de ajuste para tornar o alcance mais realista
         country_cost_reduction_factor: 0.25,
         urbanization_cost_reduction_factor: 0.20,
         max_tech_civil_level: 150,
@@ -598,9 +599,29 @@ function updateCalculations() {
     const perfSL = calculatePerformanceAtAltitude(0, combatWeight, totalEnginePower, propData, aero, superchargerData);
     const perfAlt = calculatePerformanceAtAltitude(superchargerData.rated_altitude_m, combatWeight, totalEnginePower, propData, aero, superchargerData);
     
-    const finalSpeedKmhSL = perfSL.speed_kmh * aero.speed_mod;
-    const finalSpeedKmhAlt = perfAlt.speed_kmh * aero.speed_mod;
+    // Raw calculated values
+    let rawSpeedKmhSL = perfSL.speed_kmh * aero.speed_mod;
+    let rawSpeedKmhAlt = perfAlt.speed_kmh * aero.speed_mod;
+    const bsfc_kg_per_watt_s = (engineData.bsfc_g_per_kwh / 1000) / 3.6e6;
+    const optimal_CL = Math.sqrt(aero.cd_0 * Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
+    const optimal_CD = aero.cd_0 * 2;
+    const L_D_ratio = optimal_CD > 0 ? optimal_CL / optimal_CD : 10;
+    const range_m = (propData.efficiency / (gameData.constants.standard_gravity_ms2 * bsfc_kg_per_watt_s)) * L_D_ratio * Math.log(combatWeight / (combatWeight - fuelWeight));
+    let rawRangeKm = (range_m / 1000) * aero.range_mod;
+    
     const rate_of_climb_ms = perfSL.roc_ms;
+
+    // --- ENFORCE PERFORMANCE LIMITS (CAPPING) ---
+    let finalSpeedKmhSL = rawSpeedKmhSL;
+    let finalSpeedKmhAlt = rawSpeedKmhAlt;
+    // Apply the balance factor to the range
+    let finalRangeKm = rawRangeKm / gameData.constants.range_balance_factor;
+
+    if (typeData.limits) {
+        finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, typeData.limits.max_speed);
+        finalSpeedKmhSL = Math.min(finalSpeedKmhSL, typeData.limits.max_speed); // Also cap SL speed
+        finalRangeKm = Math.min(finalRangeKm, typeData.limits.max_range);
+    }
 
     // Service Ceiling
     let serviceCeiling = 0;
@@ -624,14 +645,6 @@ function updateCalculations() {
     let turn_time_s = (2 * Math.PI * turn_radius) / v_turn;
     turn_time_s /= aero.maneuverability_mod;
     turn_time_s = Math.max(12, Math.min(60, turn_time_s));
-
-    // Range
-    const bsfc_kg_per_watt_s = (engineData.bsfc_g_per_kwh / 1000) / 3.6e6;
-    const optimal_CL = Math.sqrt(aero.cd_0 * Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-    const optimal_CD = aero.cd_0 * 2;
-    const L_D_ratio = optimal_CD > 0 ? optimal_CL / optimal_CD : 10;
-    const range_m = (propData.efficiency / (gameData.constants.standard_gravity_ms2 * bsfc_kg_per_watt_s)) * L_D_ratio * Math.log(combatWeight / (combatWeight - fuelWeight));
-    const finalRangeKm = (range_m / 1000) * aero.range_mod;
 
     const finalReliability = Math.max(5, Math.min(100, 100 * reliabilityModifier));
 
@@ -683,10 +696,9 @@ function updateCalculations() {
     if (wingLoading > 250) warnings.push({ type: 'warning', text: '⚠️ Carga alar muito alta, resultando em altas velocidades de estol.' });
     if (finalReliability < 70) warnings.push({ type: 'error', text: '🔥 Confiabilidade baixa: Propenso a falhas críticas!' });
     if (typeData.limits) {
-        if (finalSpeedKmhAlt < typeData.limits.min_speed) warnings.push({ type: 'warning', text: `⚠️ Velocidade abaixo do esperado para um ${typeData.name} (${Math.round(finalSpeedKmhAlt)} km/h).` });
-        if (finalSpeedKmhAlt > typeData.limits.max_speed) warnings.push({ type: 'warning', text: `⚠️ Velocidade acima do esperado para um ${typeData.name} (${Math.round(finalSpeedKmhAlt)} km/h).` });
-        if (finalRangeKm < typeData.limits.min_range) warnings.push({ type: 'warning', text: `⚠️ Alcance abaixo do esperado para um ${typeData.name} (${Math.round(finalRangeKm)} km).` });
-        if (finalRangeKm > typeData.limits.max_range) warnings.push({ type: 'warning', text: `⚠️ Alcance acima do esperado para um ${typeData.name} (${Math.round(finalRangeKm)} km).` });
+        if (rawSpeedKmhAlt < typeData.limits.min_speed) warnings.push({ type: 'warning', text: `⚠️ Velocidade abaixo do esperado para um ${typeData.name} (${Math.round(rawSpeedKmhAlt)} km/h).` });
+        if (rawSpeedKmhAlt > typeData.limits.max_speed) warnings.push({ type: 'warning', text: `⚠️ Velocidade acima do esperado para um ${typeData.name}. (Calculado: ${Math.round(rawSpeedKmhAlt)} km/h, Limitado a: ${typeData.limits.max_speed} km/h)` });
+        if (rawRangeKm > typeData.limits.max_range * gameData.constants.range_balance_factor) warnings.push({ type: 'warning', text: `⚠️ Alcance acima do esperado para um ${typeData.name}. (Calculado: ${Math.round(rawRangeKm / gameData.constants.range_balance_factor)} km, Limitado a: ${typeData.limits.max_range} km)` });
     }
     if (warnings.length === 0) {
         warnings.push({ type: 'ok', text: '✅ Design pronto para os céus! Clique no ícone de relatório para gerar a ficha.' });
@@ -703,9 +715,13 @@ function updateCalculations() {
     for (let h = 0; h <= 14000; h += 1000) {
         let cappedAlt = h > finalServiceCeiling ? finalServiceCeiling : h;
         const perfPoint = calculatePerformanceAtAltitude(cappedAlt, combatWeight, totalEnginePower, propData, aero, superchargerData);
+        let cappedSpeed = perfPoint.speed_kmh * aero.speed_mod;
+        if (typeData.limits) {
+            cappedSpeed = Math.min(cappedSpeed, typeData.limits.max_speed);
+        }
         performanceGraphData.push({
             altitude: cappedAlt,
-            speed: h > finalServiceCeiling ? 0 : perfPoint.speed_kmh * aero.speed_mod,
+            speed: h > finalServiceCeiling ? 0 : cappedSpeed,
             roc: h > finalServiceCeiling ? 0 : perfPoint.roc_ms
         });
         if (h >= finalServiceCeiling) break;
@@ -756,12 +772,13 @@ window.onload = function() {
         const aircraftData = updateCalculations();
         if(aircraftData){
             localStorage.setItem('aircraftSheetData', JSON.stringify(aircraftData));
+            // Pass the constant array directly to local storage to ensure consistency
             localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft));
             window.open('ficha.html', '_blank');
         } else {
             console.error("Não foi possível gerar a ficha: dados da aeronave são inválidos.");
-            // Optionally, show a user-facing error message
             const statusContainer = document.getElementById('status-container');
+            statusContainer.innerHTML = ''; // Clear previous messages
             const errorEl = document.createElement('div');
             errorEl.className = 'status-indicator status-error';
             errorEl.textContent = '🔥 Erro: Preencha os campos obrigatórios para gerar a ficha.';
