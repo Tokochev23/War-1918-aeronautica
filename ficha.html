@@ -17,6 +17,12 @@
         .chart-container { position: relative; height: 200px; width: 100%; }
         .floating-action { position: fixed; bottom: 20px; right: 20px; z-index: 50; }
         .rotate-180 { transform: rotate(180deg); }
+        #aircraft_image {
+            width: 100%;
+            height: 192px; /* h-48 */
+            object-fit: contain; /* Evita que a imagem seja cortada */
+            background-color: #f3f4f6; /* Cor de fundo para caso a imagem não preencha tudo */
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-400 to-blue-600 min-h-screen">
@@ -32,7 +38,7 @@
             <div class="p-4">
                 <div class="relative bg-gray-100 rounded-xl overflow-hidden mb-3">
                     <img id="aircraft_image" src="https://placehold.co/400x250/5F9EA0/ffffff?text=AERONAVE" 
-                         alt="Aeronave" class="w-full h-48 object-cover">
+                         alt="Aeronave" class="w-full h-48">
                     <button onclick="openImageSelector()" 
                             class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors">
                         <i class="fas fa-camera text-sm"></i>
@@ -487,7 +493,7 @@
             html2canvas(container, {
                 scale: 3, // High resolution
                 useCORS: true,
-                backgroundColor: null // Transparent background
+                backgroundColor: null // Transparent background for the gradient to show
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `${aircraftData.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
