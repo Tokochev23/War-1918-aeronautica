@@ -4,353 +4,497 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ficha da Aeronave</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonte Inter do Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Link para o arquivo de estilos CSS da ficha -->
-    <link rel="stylesheet" href="assets/css/ficha.css">
-    <!-- html2canvas CDN para salvar como PNG -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .card-collapse { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .card-collapse.expanded { max-height: 1000px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .chart-container { position: relative; height: 200px; width: 100%; }
+        .floating-action { position: fixed; bottom: 20px; right: 20px; z-index: 50; }
+        .rotate-180 { transform: rotate(180deg); }
+    </style>
 </head>
-<body>
-    <div class="ficha-container" id="ficha_to_capture">
-        <div class="ficha-header">
-            <h1 id="ficha_aircraft_name">Carregando Ficha...</h1>
-            <p id="ficha_aircraft_type_doctrine"></p>
+<body class="bg-gradient-to-br from-blue-400 to-blue-600 min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-md" id="ficha_container">
+        <!-- Header Card -->
+        <div class="bg-white rounded-2xl shadow-xl mb-4 overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-700 to-slate-900 text-white p-4 text-center">
+                <h1 id="aircraft_name" class="text-xl font-bold mb-1">Nome da Aeronave</h1>
+                <p id="aircraft_subtitle" class="text-sm opacity-90">Tipo - Doutrina</p>
+            </div>
+            
+            <!-- Aircraft Image -->
+            <div class="p-4">
+                <div class="relative bg-gray-100 rounded-xl overflow-hidden mb-3">
+                    <img id="aircraft_image" src="https://placehold.co/400x250/5F9EA0/ffffff?text=AERONAVE" 
+                         alt="Aeronave" class="w-full h-48 object-cover">
+                    <button onclick="openImageSelector()" 
+                            class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors">
+                        <i class="fas fa-camera text-sm"></i>
+                    </button>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="stats-grid text-sm">
+                    <div class="bg-blue-50 p-2 rounded-lg text-center">
+                        <div class="text-blue-600 font-semibold" id="unit_cost">$0</div>
+                        <div class="text-xs text-gray-600">Custo</div>
+                    </div>
+                    <div class="bg-green-50 p-2 rounded-lg text-center">
+                        <div class="text-green-600 font-semibold" id="max_speed">0 km/h</div>
+                        <div class="text-xs text-gray-600">Vel. Máx</div>
+                    </div>
+                    <div class="bg-purple-50 p-2 rounded-lg text-center">
+                        <div class="text-purple-600 font-semibold" id="total_power">0 HP</div>
+                        <div class="text-xs text-gray-600">Potência</div>
+                    </div>
+                    <div class="bg-orange-50 p-2 rounded-lg text-center">
+                        <div class="text-orange-600 font-semibold" id="reliability">0%</div>
+                        <div class="text-xs text-gray-600">Confiabilidade</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="ficha-content">
-            <!-- Seção de Imagem com Upload e Seleção -->
-            <div class="ficha-image-section">
-                <img id="ficha_matched_aircraft_image" src="https://placehold.co/600x375/5F9EA0/ffffff?text=IMAGEM+DA+AERONAVE" alt="Imagem da Aeronave" class="ficha-aircraft-image">
-                <p class="text-sm text-gray-500 mt-2" id="image_source_text">Escolha ou carregue uma imagem de referência.</p>
+        <!-- Performance Chart Card -->
+        <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
+            <button onclick="toggleCard('performance_card')" 
+                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+                    <span class="font-semibold text-gray-800">Gráfico de Performance</span>
+                </div>
+                <i class="fas fa-chevron-down transform transition-transform" id="performance_card_icon"></i>
+            </button>
+            <div id="performance_card" class="card-collapse">
+                <div class="p-4">
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Card -->
+        <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
+            <button onclick="toggleCard('stats_card')" 
+                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-green-50 to-green-100">
+                <div class="flex items-center">
+                    <i class="fas fa-tachometer-alt text-green-600 mr-3"></i>
+                    <span class="font-semibold text-gray-800">Estatísticas Completas</span>
+                </div>
+                <i class="fas fa-chevron-down transform transition-transform" id="stats_card_icon"></i>
+            </button>
+            <div id="stats_card" class="card-collapse">
+                <div class="p-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span class="text-gray-600">Peso:</span>
+                            <span id="total_weight" class="font-medium">0 kg</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span class="text-gray-600">Subida:</span>
+                            <span id="rate_of_climb" class="font-medium">0 m/s</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span class="text-gray-600">Teto:</span>
+                            <span id="service_ceiling" class="font-medium">0 m</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span class="text-gray-600">Alcance:</span>
+                            <span id="max_range" class="font-medium">0 km</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span class="text-gray-600">Manobra:</span>
+                            <span id="turn_time" class="font-medium">0s</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50 rounded">
+                            <span class="text-gray-600">Tripulação:</span>
+                            <span id="num_crewmen" class="font-medium">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Armament Card -->
+        <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
+            <button onclick="toggleCard('armament_card')" 
+                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-red-50 to-red-100">
+                <div class="flex items-center">
+                    <i class="fas fa-crosshairs text-red-600 mr-3"></i>
+                    <span class="font-semibold text-gray-800">Armamentos</span>
+                </div>
+                <i class="fas fa-chevron-down transform transition-transform" id="armament_card_icon"></i>
+            </button>
+            <div id="armament_card" class="card-collapse">
+                <div class="p-4 space-y-3">
+                    <div>
+                        <span class="text-sm font-medium text-gray-600">Ofensivo:</span>
+                        <p id="offensive_armament" class="text-sm mt-1">Nenhum</p>
+                    </div>
+                    <div>
+                        <span class="text-sm font-medium text-gray-600">Defensivo:</span>
+                        <p id="defensive_armament" class="text-sm mt-1">Nenhum</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design Details Card -->
+        <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
+            <button onclick="toggleCard('design_card')" 
+                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-purple-50 to-purple-100">
+                <div class="flex items-center">
+                    <i class="fas fa-cog text-purple-600 mr-3"></i>
+                    <span class="font-semibold text-gray-800">Detalhes do Projeto</span>
+                </div>
+                <i class="fas fa-chevron-down transform transition-transform" id="design_card_icon"></i>
+            </button>
+            <div id="design_card" class="card-collapse">
+                <div class="p-4 space-y-3 text-sm">
+                    <div class="border-b pb-2">
+                        <span class="font-medium text-gray-700">Tipo:</span>
+                        <span id="aircraft_type" class="ml-2">-</span>
+                    </div>
+                    <div class="border-b pb-2">
+                        <span class="font-medium text-gray-700">Estrutura:</span>
+                        <span id="structure_type" class="ml-2">-</span>
+                    </div>
+                    <div class="border-b pb-2">
+                        <span class="font-medium text-gray-700">Hélice:</span>
+                        <span id="propeller_type" class="ml-2">-</span>
+                    </div>
+                    <div class="border-b pb-2">
+                        <span class="font-medium text-gray-700">Refrigeração:</span>
+                        <span id="cooling_system" class="ml-2">-</span>
+                    </div>
+                    <div class="border-b pb-2">
+                        <span class="font-medium text-gray-700">Asa:</span>
+                        <span id="wing_type" class="ml-2">-</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Trem de Pouso:</span>
+                        <span id="landing_gear_type" class="ml-2">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipment Cards Grid -->
+        <div class="grid grid-cols-2 gap-3 mb-20">
+            <!-- Wings & Engine -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <button onclick="toggleCard('wings_engine_card')" 
+                        class="w-full p-3 text-left bg-gradient-to-r from-amber-50 to-amber-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-feather text-amber-600 mr-2 text-sm"></i>
+                            <span class="font-medium text-sm">Asas & Motor</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-xs transform transition-transform" id="wings_engine_card_icon"></i>
+                    </div>
+                </button>
+                <div id="wings_engine_card" class="card-collapse">
+                    <div class="p-3 text-xs space-y-2">
+                        <div>
+                            <span class="font-medium text-gray-600">Asas:</span>
+                            <div id="wing_features" class="mt-1 text-gray-700"></div>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-600">Motor:</span>
+                            <div id="engine_enhancements" class="mt-1 text-gray-700"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Protection & Cockpit -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <button onclick="toggleCard('protection_cockpit_card')" 
+                        class="w-full p-3 text-left bg-gradient-to-r from-emerald-50 to-emerald-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-shield text-emerald-600 mr-2 text-sm"></i>
+                            <span class="font-medium text-sm">Proteção & Cockpit</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-xs transform transition-transform" id="protection_cockpit_card_icon"></i>
+                    </div>
+                </button>
+                <div id="protection_cockpit_card" class="card-collapse">
+                    <div class="p-3 text-xs space-y-2">
+                        <div>
+                            <span class="font-medium text-gray-600">Proteção:</span>
+                            <div id="protection" class="mt-1 text-gray-700"></div>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-600">Cockpit:</span>
+                            <div id="cockpit_comfort" class="mt-1 text-gray-700"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avionics & Equipment -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden col-span-2">
+                <button onclick="toggleCard('avionics_equipment_card')" 
+                        class="w-full p-3 text-left bg-gradient-to-r from-cyan-50 to-cyan-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-satellite-dish text-cyan-600 mr-2 text-sm"></i>
+                            <span class="font-medium text-sm">Aviônicos & Equipamentos</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-xs transform transition-transform" id="avionics_equipment_card_icon"></i>
+                    </div>
+                </button>
+                <div id="avionics_equipment_card" class="card-collapse">
+                    <div class="p-3 text-xs space-y-2">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <span class="font-medium text-gray-600">Aviônicos:</span>
+                                <div id="advanced_avionics" class="mt-1 text-gray-700"></div>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Equipamentos:</span>
+                                <div id="equipment" class="mt-1 text-gray-700"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="floating-action">
+        <button onclick="saveAsPNG()" 
+                class="bg-green-500 text-white w-14 h-14 rounded-full shadow-2xl hover:bg-green-600 transition-transform hover:scale-110 flex items-center justify-center">
+            <i class="fas fa-download text-lg"></i>
+        </button>
+    </div>
+
+    <!-- Image Selector Modal -->
+    <div id="image_modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h3 class="text-lg font-semibold mb-4">Alterar Imagem</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Upload de Imagem:</label>
+                    <input type="file" id="image_upload" accept="image/*" 
+                           class="w-full p-2 border rounded-lg text-sm">
+                </div>
                 
-                <div class="image-controls">
-                    <div class="file-upload-wrapper">
-                        <input type="file" id="image_upload_input" accept="image/*" class="file-upload-input">
-                        <label for="image_upload_input" class="file-upload-button"><i class="fa-solid fa-upload mr-2"></i>Carregar Imagem</label>
-                    </div>
-                    
-                    <select id="real_aircraft_select" class="real-aircraft-select">
-                        <option value="">Ou selecione uma aeronave real...</option>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Ou escolha uma aeronave:</label>
+                    <select id="aircraft_select" class="w-full p-2 border rounded-lg text-sm">
+                        <option value="">Selecione...</option>
                     </select>
-                    <button id="apply_selected_aircraft" class="apply-button"><i class="fa-solid fa-check mr-2"></i>Aplicar Seleção</button>
-                </div>
-            </div>
-
-            <div class="ficha-section main-stats">
-                <h3><i class="fa-solid fa-gauge-high mr-2"></i>Estatísticas de Performance</h3>
-                <div class="stats-grid">
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-dollar-sign w-4"></i> Custo/Unid:</span> <span id="ficha_unit_cost"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-weight-hanging w-4"></i> Peso Total:</span> <span id="ficha_total_weight"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-horse-head w-4"></i> Potência Total:</span> <span id="ficha_total_power"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-wind w-4"></i> Vel. Máxima:</span> <span id="ficha_speed_max"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-angles-up w-4"></i> Razão de Subida:</span> <span id="ficha_rate_of_climb"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-mountain-sun w-4"></i> Teto de Serviço:</span> <span id="ficha_service_ceiling"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-route w-4"></i> Alcance Máx:</span> <span id="ficha_max_range"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-arrows-rotate w-4"></i> Manobrabilidade:</span> <span id="ficha_turn_time"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-shield-heart w-4"></i> Confiabilidade:</span> <span id="ficha_reliability"></span></div>
-                    <div class="stat-item"><span class="label"><i class="fa-solid fa-users w-4"></i> Tripulação:</span> <span id="ficha_num_crewmen"></span></div>
-                </div>
-            </div>
-
-            <!-- Performance Chart Section -->
-            <div class="ficha-section">
-                <h3><i class="fa-solid fa-chart-line mr-2"></i>Gráfico de Performance por Altitude</h3>
-                <div class="performance-chart-container">
-                    <canvas id="performanceChart"></canvas>
-                </div>
-            </div>
-
-            <div class="ficha-section">
-                <h3><i class="fa-solid fa-crosshairs mr-2"></i>Armamentos</h3>
-                 <div class="info-grid">
-                    <div class="info-group">
-                        <span class="info-label">Ofensivo:</span> <span id="ficha_offensive_armament"></span>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Defensivo:</span> <span id="ficha_defensive_armament_texts"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ficha-section detailed-info">
-                <h3><i class="fa-solid fa-screwdriver-wrench mr-2"></i>Detalhes do Projeto</h3>
-                <div class="info-grid">
-                    <div class="info-group">
-                        <span class="info-label">Tipo de Aeronave:</span> <span id="ficha_aircraft_type"></span>
-                        <p class="info-description" id="ficha_aircraft_type_description"></p>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Material da Estrutura:</span> <span id="ficha_structure_type"></span>
-                        <p class="info-description" id="ficha_structure_description"></p>
-                    </div>
-                     <div class="info-group">
-                        <span class="info-label">Tipo de Hélice:</span> <span id="ficha_propeller_type"></span>
-                        <p class="info-description" id="ficha_propeller_description"></p>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Sistema de Refrigeração:</span> <span id="ficha_cooling_system"></span>
-                        <p class="info-description" id="ficha_cooling_description"></p>
-                    </div>
-                     <div class="info-group">
-                        <span class="info-label">Alimentação de Combustível:</span> <span id="ficha_fuel_feed"></span>
-                        <p class="info-description" id="ficha_fuel_feed_description"></p>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Sobrealimentação:</span> <span id="ficha_supercharger"></span>
-                        <p class="info-description" id="ficha_supercharger_description"></p>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Tipo de Asa:</span> <span id="ficha_wing_type"></span>
-                        <p class="info-description" id="ficha_wing_type_description"></p>
-                    </div>
-                    <div class="info-group">
-                        <span class="info-label">Trem de Pouso:</span> <span id="ficha_landing_gear_type"></span>
-                        <p class="info-description" id="ficha_landing_gear_type_description"></p>
-                    </div>
                 </div>
             </div>
             
-            <div class="info-columns">
-                <div class="ficha-section">
-                    <h3><i class="fa-solid fa-feather-pointed mr-2"></i>Asas</h3>
-                    <div class="info-list" id="ficha_wing_features"></div>
-                </div>
-
-                <div class="ficha-section">
-                    <h3><i class="fa-solid fa-gears mr-2"></i>Motor</h3>
-                    <div class="info-list" id="ficha_engine_enhancements"></div>
-                </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="applyImageSelection()" 
+                        class="flex-1 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                    Aplicar
+                </button>
+                <button onclick="closeImageSelector()" 
+                        class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors">
+                    Cancelar
+                </button>
             </div>
-
-            <div class="info-columns">
-                <div class="ficha-section">
-                    <h3><i class="fa-solid fa-user-shield mr-2"></i>Proteção</h3>
-                    <div class="info-list" id="ficha_protection"></div>
-                </div>
-
-                <div class="ficha-section">
-                    <h3><i class="fa-solid fa-couch mr-2"></i>Cockpit</h3>
-                    <div class="info-list" id="ficha_cockpit_comfort"></div>
-                </div>
-            </div>
-
-             <div class="info-columns">
-                <div class="ficha-section">
-                    <h3><i class="fa-solid fa-satellite-dish mr-2"></i>Aviônicos</h3>
-                    <div class="info-list" id="ficha_advanced_avionics"></div>
-                </div>
-
-                <div class="ficha-section">
-                    <h3><i class="fa-solid fa-toolbox mr-2"></i>Equipamentos</h3>
-                    <div class="info-list" id="ficha_equipment"></div>
-                </div>
-            </div>
-
         </div>
-    </div>
-    <div class="ficha-actions">
-        <button id="save_ficha_button" class="save-button"><i class="fa-solid fa-camera mr-2"></i>Salvar Ficha como PNG</button>
-        <button id="back_button" class="back-button" onclick="window.close()"><i class="fa-solid fa-arrow-left mr-2"></i>Voltar</button>
     </div>
 
     <script>
+        let aircraftData = {};
+        let realWorldAircraft = [];
+        let performanceChart = null;
+
         document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+
+        function loadData() {
             const aircraftDataString = localStorage.getItem('aircraftSheetData');
             const realWorldAircraftString = localStorage.getItem('realWorldAircraftData');
-            let realWorldAircraft = [];
 
             if (realWorldAircraftString) {
-                realWorldAircraft = JSON.parse(realWorldAircraftString);
+                try {
+                    realWorldAircraft = JSON.parse(realWorldAircraftString);
+                    populateAircraftSelect();
+                } catch (e) {
+                    console.error("Error parsing real world aircraft data from localStorage", e);
+                }
             }
 
             if (aircraftDataString) {
-                const data = JSON.parse(aircraftDataString);
-
-                // Cabeçalho
-                document.getElementById('ficha_aircraft_name').textContent = data.aircraftName;
-                document.getElementById('ficha_aircraft_type_doctrine').textContent = `${data.aircraftTypeName} - Doutrina: ${data.doctrineName}`;
-
-                // Estatísticas
-                document.getElementById('ficha_unit_cost').textContent = data.finalUnitCost;
-                document.getElementById('ficha_total_weight').textContent = data.totalWeight;
-                document.getElementById('ficha_total_power').textContent = data.totalPower;
-                document.getElementById('ficha_speed_max').textContent = data.speedMax;
-                document.getElementById('ficha_rate_of_climb').textContent = data.rateOfClimb;
-                document.getElementById('ficha_service_ceiling').textContent = data.serviceCeiling;
-                document.getElementById('ficha_max_range').textContent = data.maxRange;
-                document.getElementById('ficha_turn_time').textContent = data.turnTime;
-                document.getElementById('ficha_reliability').textContent = data.reliability;
-                document.getElementById('ficha_offensive_armament').textContent = data.offensiveArmamentText;
-                document.getElementById('ficha_defensive_armament_texts').textContent = data.defensiveArmamentTexts.join(', ') || 'Nenhum';
-                document.getElementById('ficha_num_crewmen').textContent = data.numCrewmen;
-
-                // Detalhes do Projeto
-                document.getElementById('ficha_aircraft_type').textContent = data.aircraftTypeName;
-                document.getElementById('ficha_aircraft_type_description').textContent = data.aircraftTypeDescription;
-                document.getElementById('ficha_structure_type').textContent = data.structureTypeName;
-                document.getElementById('ficha_structure_description').textContent = data.structureTypeDescription;
-                document.getElementById('ficha_propeller_type').textContent = data.propellerTypeName;
-                document.getElementById('ficha_propeller_description').textContent = data.propellerTypeDescription;
-                document.getElementById('ficha_cooling_system').textContent = data.coolingSystemName;
-                document.getElementById('ficha_cooling_description').textContent = data.coolingSystemDescription;
-                document.getElementById('ficha_fuel_feed').textContent = data.fuelFeedName;
-                document.getElementById('ficha_fuel_feed_description').textContent = data.fuelFeedDescription;
-                document.getElementById('ficha_supercharger').textContent = data.superchargerName;
-                document.getElementById('ficha_supercharger_description').textContent = data.superchargerDescription;
-                document.getElementById('ficha_wing_type').textContent = data.wingTypeName;
-                document.getElementById('ficha_wing_type_description').textContent = data.wingTypeDescription;
-                document.getElementById('ficha_landing_gear_type').textContent = data.landingGearTypeName;
-                document.getElementById('ficha_landing_gear_type_description').textContent = data.landingGearTypeDescription;
-
-                // Funcao para popular listas
-                const populateList = (elementId, items) => {
-                    const container = document.getElementById(elementId);
-                    if (items && items.length > 0) {
-                        items.forEach(item => {
-                            const p = document.createElement('p');
-                            p.textContent = `- ${item}`;
-                            container.appendChild(p);
-                        });
-                    } else {
-                        const p = document.createElement('p');
-                        p.textContent = 'Nenhum';
-                        p.className = 'text-gray-500';
-                        container.appendChild(p);
-                    }
-                };
-
-                populateList('ficha_wing_features', data.selectedWingFeatures);
-                populateList('ficha_engine_enhancements', data.selectedEngineEnhancements);
-                populateList('ficha_protection', data.selectedProtection);
-                populateList('ficha_cockpit_comfort', data.selectedCockpitComfort);
-                populateList('ficha_advanced_avionics', data.selectedAdvancedAvionics);
-                populateList('ficha_equipment', data.selectedEquipment);
-
-
-                // Imagem
-                const imageUploadInput = document.getElementById('image_upload_input');
-                const realAircraftSelect = document.getElementById('real_aircraft_select');
-                const applySelectedAircraftButton = document.getElementById('apply_selected_aircraft');
-                const fichaMatchedAircraftImage = document.getElementById('ficha_matched_aircraft_image');
-                const imageSourceText = document.getElementById('image_source_text');
-
-                realWorldAircraft.forEach(plane => {
-                    const option = document.createElement('option');
-                    option.value = plane.id;
-                    option.textContent = plane.name;
-                    realAircraftSelect.appendChild(option);
-                });
-
-                imageUploadInput.addEventListener('change', (event) => {
-                    const file = event.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            fichaMatchedAircraftImage.src = e.target.result;
-                            imageSourceText.textContent = `Imagem personalizada`;
-                            realAircraftSelect.value = ""; 
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-
-                applySelectedAircraftButton.addEventListener('click', () => {
-                    const selectedAircraftId = realAircraftSelect.value;
-                    if (selectedAircraftId) {
-                        const selectedAircraft = realWorldAircraft.find(plane => plane.id === selectedAircraftId);
-                        if (selectedAircraft) {
-                            fichaMatchedAircraftImage.src = selectedAircraft.image_url || 'https://placehold.co/600x375/5F9EA0/ffffff?text=IMAGEM+NÃO+DISPONÍVEL';
-                            imageSourceText.textContent = `Baseado em: ${selectedAircraft.name}`;
-                            imageUploadInput.value = ''; 
-                        }
-                    }
-                });
-
-                // Salvar como PNG
-                document.getElementById('save_ficha_button').addEventListener('click', () => {
-                    const fichaContent = document.getElementById('ficha_to_capture');
-                    html2canvas(fichaContent, {
-                        scale: 4, // Aumentado para maior resolução
-                        useCORS: true,
-                        logging: true,
-                        backgroundColor: '#ffffff' // Garante um fundo branco
-                    }).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = `${data.aircraftName.replace(/ /g, '_')}_Ficha.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                    });
-                });
-
-                // Performance Chart
-                if (data.performanceGraphData) {
-                    const ctx = document.getElementById('performanceChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: data.performanceGraphData.map(d => `${(d.altitude / 1000).toFixed(0)} km`),
-                            datasets: [{
-                                label: 'Velocidade Máxima (km/h)',
-                                data: data.performanceGraphData.map(d => d.speed),
-                                borderColor: 'rgb(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                yAxisID: 'y',
-                                tension: 0.3,
-                                fill: true,
-                            }, {
-                                label: 'Razão de Subida (m/s)',
-                                data: data.performanceGraphData.map(d => d.roc),
-                                borderColor: 'rgb(255, 99, 132)',
-                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                                yAxisID: 'y1',
-                                tension: 0.3,
-                                fill: true,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            interaction: {
-                                mode: 'index',
-                                intersect: false,
-                            },
-                            scales: {
-                                x: {
-                                    title: { display: true, text: 'Altitude' }
-                                },
-                                y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
-                                    title: { display: true, text: 'Velocidade (km/h)' }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    title: { display: true, text: 'Razão de Subida (m/s)' },
-                                    grid: {
-                                        drawOnChartArea: false, 
-                                    },
-                                },
-                            }
-                        }
-                    });
-                }
-
-
+                aircraftData = JSON.parse(aircraftDataString);
+                populateSheet();
+                createPerformanceChart();
             } else {
-                document.getElementById('ficha_aircraft_name').textContent = 'Nenhum dado de aeronave encontrado.';
+                document.getElementById('aircraft_name').textContent = 'Dados não encontrados';
+                document.getElementById('aircraft_subtitle').textContent = 'Volte e gere a ficha novamente.';
             }
-        });
+        }
+
+        function populateSheet() {
+            // Header
+            document.getElementById('aircraft_name').textContent = aircraftData.aircraftName || 'Nome da Aeronave';
+            document.getElementById('aircraft_subtitle').textContent = `${aircraftData.aircraftTypeName || 'Tipo'} - ${aircraftData.doctrineName || 'Doutrina'}`;
+
+            // Quick stats
+            document.getElementById('unit_cost').textContent = aircraftData.finalUnitCost || '$0';
+            document.getElementById('max_speed').textContent = aircraftData.speedMax || '0 km/h';
+            document.getElementById('total_power').textContent = aircraftData.totalPower || '0 HP';
+            document.getElementById('reliability').textContent = aircraftData.reliability || '0%';
+
+            // Detailed stats
+            document.getElementById('total_weight').textContent = aircraftData.totalWeight || '0 kg';
+            document.getElementById('rate_of_climb').textContent = aircraftData.rateOfClimb || '0 m/s';
+            document.getElementById('service_ceiling').textContent = aircraftData.serviceCeiling || '0 m';
+            document.getElementById('max_range').textContent = aircraftData.maxRange || '0 km';
+            document.getElementById('turn_time').textContent = aircraftData.turnTime || '0s';
+            document.getElementById('num_crewmen').textContent = aircraftData.numCrewmen || '0';
+
+            // Armament
+            document.getElementById('offensive_armament').textContent = aircraftData.offensiveArmamentText || 'Nenhum';
+            document.getElementById('defensive_armament').textContent = aircraftData.defensiveArmamentTexts?.join(', ') || 'Nenhum';
+
+            // Design details
+            document.getElementById('aircraft_type').textContent = aircraftData.aircraftTypeName || '-';
+            document.getElementById('structure_type').textContent = aircraftData.structureTypeName || '-';
+            document.getElementById('propeller_type').textContent = aircraftData.propellerTypeName || '-';
+            document.getElementById('cooling_system').textContent = aircraftData.coolingSystemName || '-';
+            document.getElementById('wing_type').textContent = aircraftData.wingTypeName || '-';
+            document.getElementById('landing_gear_type').textContent = aircraftData.landingGearTypeName || '-';
+
+            // Equipment lists
+            populateEquipmentList('wing_features', aircraftData.selectedWingFeatures);
+            populateEquipmentList('engine_enhancements', aircraftData.selectedEngineEnhancements);
+            populateEquipmentList('protection', aircraftData.selectedProtection);
+            populateEquipmentList('cockpit_comfort', aircraftData.selectedCockpitComfort);
+            populateEquipmentList('advanced_avionics', aircraftData.selectedAdvancedAvionics);
+            populateEquipmentList('equipment', aircraftData.selectedEquipment);
+        }
+
+        function populateEquipmentList(elementId, items) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = ''; // Clear previous items
+            if (items && items.length > 0) {
+                container.innerHTML = items.map(item => `<div class="py-1">• ${item}</div>`).join('');
+            } else {
+                container.innerHTML = '<div class="text-gray-500">Nenhum</div>';
+            }
+        }
+
+        function populateAircraftSelect() {
+            const select = document.getElementById('aircraft_select');
+            select.innerHTML = '<option value="">Selecione...</option>'; // Clear and add default
+            realWorldAircraft.forEach(aircraft => {
+                const option = document.createElement('option');
+                option.value = aircraft.id;
+                option.textContent = aircraft.name;
+                select.appendChild(option);
+            });
+        }
+
+        function createPerformanceChart() {
+            if (!aircraftData.performanceGraphData) return;
+
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: aircraftData.performanceGraphData.map(d => `${(d.altitude / 1000).toFixed(0)}km`),
+                    datasets: [{
+                        label: 'Velocidade',
+                        data: aircraftData.performanceGraphData.map(d => d.speed),
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    }, {
+                        label: 'Subida',
+                        data: aircraftData.performanceGraphData.map(d => d.roc),
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        yAxisID: 'y1',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'top', labels: { font: { size: 10 } } } },
+                    scales: {
+                        x: { ticks: { font: { size: 9 } } },
+                        y: { position: 'left', ticks: { font: { size: 9 } } },
+                        y1: { position: 'right', ticks: { font: { size: 9 } }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+        }
+
+        function toggleCard(cardId) {
+            const card = document.getElementById(cardId);
+            const icon = document.getElementById(cardId + '_icon');
+            card.classList.toggle('expanded');
+            icon.classList.toggle('rotate-180');
+        }
+
+        function openImageSelector() {
+            document.getElementById('image_modal').classList.remove('hidden');
+            document.getElementById('image_modal').classList.add('flex');
+        }
+
+        function closeImageSelector() {
+            document.getElementById('image_modal').classList.add('hidden');
+            document.getElementById('image_modal').classList.remove('flex');
+        }
+
+        function applyImageSelection() {
+            const fileInput = document.getElementById('image_upload');
+            const selectInput = document.getElementById('aircraft_select');
+            const imageElement = document.getElementById('aircraft_image');
+
+            if (fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => { imageElement.src = e.target.result; };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else if (selectInput.value) {
+                const selectedAircraft = realWorldAircraft.find(a => a.id === selectInput.value);
+                if (selectedAircraft && selectedAircraft.image_url) {
+                    imageElement.src = selectedAircraft.image_url;
+                }
+            }
+            closeImageSelector();
+        }
+
+        function saveAsPNG() {
+            const container = document.getElementById('ficha_container');
+            html2canvas(container, {
+                scale: 3, // High resolution
+                useCORS: true,
+                backgroundColor: null // Transparent background
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `${aircraftData.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
     </script>
 </body>
 </html>
