@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fonte Inter do Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Link para o arquivo de estilos CSS principal -->
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
@@ -24,7 +26,7 @@
             <div class="form-sections col-span-1 lg:col-span-2 space-y-6">
                 <!-- Basic Info & Country Doctrine -->
                 <div class="form-section">
-                    <h3>📝 Informações da Aeronave e Doutrina</h3>
+                    <h3><i class="fa-solid fa-file-signature mr-2"></i>Informações da Aeronave e Doutrina</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-group">
                             <label for="aircraft_name">Nome da Aeronave:</label>
@@ -32,7 +34,7 @@
                         </div>
                         <div class="form-group">
                             <label for="quantity">Quantidade a Produzir:</label>
-                            <input type="number" id="quantity" min="1" max="999" value="1" oninput="updateCalculations()">
+                            <input type="number" id="quantity" min="1" max="9999" value="1" oninput="updateCalculations()">
                         </div>
                     </div>
                     <div class="form-group mt-4">
@@ -57,7 +59,7 @@
 
                 <!-- Production vs Quality Slider -->
                 <div class="form-section">
-                    <h3>⚖️ Balanço Produção vs. Qualidade</h3>
+                    <h3><i class="fa-solid fa-scale-balanced mr-2"></i>Balanço Produção vs. Qualidade</h3>
                     <div class="form-group">
                         <label for="production_quality_slider" class="flex justify-between items-center">
                             <span>Qualidade 💎</span>
@@ -70,7 +72,7 @@
 
                 <!-- Airframe and Basic Configuration -->
                 <div class="form-section">
-                    <h3>✈️ Fuselagem e Configuração Base</h3>
+                    <h3><i class="fa-solid fa-plane mr-2"></i>Fuselagem e Configuração Base</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-group">
                             <label for="aircraft_type">Tipo de Aeronave:</label>
@@ -106,7 +108,7 @@
 
                 <!-- Wing Configuration -->
                 <div class="form-section" id="wing-configuration-section">
-                    <h3>🦅 Configuração das Asas</h3>
+                    <h3><i class="fa-solid fa-feather-pointed mr-2"></i>Configuração das Asas</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-group">
                             <label for="wing_type">Tipo de Asa:</label>
@@ -137,7 +139,7 @@
                 </div>
 
                 <div class="form-section" id="engine-section">
-                    <h3>⚙️ Motor e Propulsão</h3>
+                    <h3><i class="fa-solid fa-gears mr-2"></i>Motor e Propulsão</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-group">
                             <label for="engine_type">Tipo de Motor:</label>
@@ -156,7 +158,11 @@
                             <p id="engine_type_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                         <div class="form-group">
-                            <label for="engine_power">Potência do Motor (HP):</label>
+                            <label for="num_engines">Número de Motores:</label>
+                            <input type="number" id="num_engines" min="1" max="8" value="1" step="1" oninput="updateCalculations()">
+                        </div>
+                        <div class="form-group">
+                            <label for="engine_power">Potência por Motor (HP):</label>
                             <input type="number" id="engine_power" min="50" max="3000" value="500" step="10" oninput="updateCalculations()">
                             <p id="engine_power_note" class="text-sm text-red-600 mt-1"></p>
                         </div>
@@ -205,7 +211,7 @@
                 </div>
                 
                 <div class="form-section" id="armament-section">
-                    <h3>🔫 Armamentos Ofensivos</h3>
+                    <h3><i class="fa-solid fa-crosshairs mr-2"></i>Armamentos Ofensivos</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         <div class="item-row">
                             <label for="mg_30">Metralhadora .30 (7.62mm)</label>
@@ -268,7 +274,7 @@
 
                 <!-- Defensive Armaments -->
                 <div class="form-section" id="defensive-armaments-section">
-                    <h3>🛡️ Armamentos Defensivos</h3>
+                    <h3><i class="fa-solid fa-shield-halved mr-2"></i>Armamentos Defensivos</h3>
                     <div class="form-group">
                         <label for="defensive_turret_type">Tipo de Torre Defensiva:</label>
                         <select id="defensive_turret_type" onchange="updateCalculations()">
@@ -296,7 +302,7 @@
                 </div>
 
                 <div class="form-section" id="protection-section">
-                    <h3>🛡️ Proteção</h3>
+                    <h3><i class="fa-solid fa-user-shield mr-2"></i>Proteção</h3>
                     <div class="space-y-2">
                         <div class="item-row"><input type="checkbox" id="pilot_armor" onchange="updateCalculations()"><label for="pilot_armor">Blindagem do Piloto</label></div>
                         <div class="item-row"><input type="checkbox" id="engine_armor" onchange="updateCalculations()"><label for="engine_armor">Blindagem do Motor</label></div>
@@ -306,17 +312,18 @@
                 </div>
 
                 <div class="form-section" id="cockpit-comfort-section">
-                    <h3>🛋️ Cockpit e Conforto</h3>
+                    <h3><i class="fa-solid fa-couch mr-2"></i>Cockpit e Conforto</h3>
                     <div class="space-y-2">
                         <div class="item-row"><input type="checkbox" id="enclosed_cockpit" onchange="updateCalculations()"><label for="enclosed_cockpit">Cabine Fechada</label></div>
                         <div class="item-row"><input type="checkbox" id="heated_cockpit" onchange="updateCalculations()"><label for="heated_cockpit">Cabine Aquecida</label></div>
                         <div class="item-row"><input type="checkbox" id="oxygen_system" onchange="updateCalculations()"><label for="oxygen_system">Sistema de Oxigênio</label></div>
+                        <div class="item-row"><input type="checkbox" id="pressurized_cabin" onchange="updateCalculations()"><label for="pressurized_cabin">Cabine Pressurizada</label></div>
                         <div class="item-row"><input type="checkbox" id="basic_autopilot" onchange="updateCalculations()"><label for="basic_autopilot">Piloto Automático Básico</label></div>
                     </div>
                 </div>
 
                 <div class="form-section" id="advanced-avionics-section">
-                    <h3>📡 Sistemas Avançados e Aviônicos</h3>
+                    <h3><i class="fa-solid fa-satellite-dish mr-2"></i>Sistemas Avançados e Aviônicos</h3>
                     <div class="space-y-2">
                         <div class="item-row"><input type="checkbox" id="radio_direction_finder" onchange="updateCalculations()"><label for="radio_direction_finder">Rádio Direção (RDF)</label></div>
                         <div class="item-row"><input type="checkbox" id="blind_flying_instruments" onchange="updateCalculations()"><label for="blind_flying_instruments">Instrumentos de Voo por Instrumentos</label></div>
@@ -328,7 +335,7 @@
                 </div>
 
                 <div class="form-section" id="equipment-section">
-                    <h3>⚙️ Equipamentos</h3>
+                    <h3><i class="fa-solid fa-toolbox mr-2"></i>Equipamentos</h3>
                     <div class="space-y-2">
                         <div class="item-row"><input type="checkbox" id="parachute" onchange="updateCalculations()"><label for="parachute">Paraquedas</label></div>
                         <div class="item-row"><input type="checkbox" id="ejection_seat" onchange="updateCalculations()"><label for="ejection_seat">Assento Ejetável (Exp.)</label></div>
@@ -337,7 +344,6 @@
                         <div class="item-row"><input type="checkbox" id="nav_instruments" onchange="updateCalculations()"><label for="nav_instruments">Instrumentos de Navegação</label></div>
                         <div class="item-row"><input type="checkbox" id="gyro_compass" onchange="updateCalculations()"><label for="gyro_compass">Bússola Giroscópica</label></div>
                         <div class="item-row"><input type="checkbox" id="gun_synchronizer" onchange="updateCalculations()"><label for="gun_synchronizer">Sincronizador de Metralhadoras</label></div>
-                        <div class="item-row"><input type="checkbox" id="pressurized_cabin" onchange="updateCalculations()"><label for="pressurized_cabin">Cabine Pressurizada</label></div>
                         <div class="item-row"><input type="checkbox" id="dive_brakes" onchange="updateCalculations()"><label for="dive_brakes">Freios de Mergulho</label></div>
                         <div class="item-row"><input type="checkbox" id="sirens" onchange="updateCalculations()"><label for="sirens">Sirenes Psicológicas</label></div>
                         <div class="item-row"><input type="checkbox" id="jato" onchange="updateCalculations()"><label for="jato">Foguetes Auxiliares (JATO)</label></div>
@@ -350,14 +356,14 @@
                 </div>
 
                 <div class="form-section" id="reliability-maintainability-section">
-                    <h3>🔧 Confiabilidade e Manutenibilidade</h3>
+                    <h3><i class="fa-solid fa-screwdriver-wrench mr-2"></i>Confiabilidade e Manutenibilidade</h3>
                     <div class="space-y-2">
                         <div class="item-row"><input type="checkbox" id="standardized_parts" onchange="updateCalculations()"><label for="standardized_parts">Peças Padronizadas</label></div>
                     </div>
                 </div>
 
                 <div class="form-section">
-                    <h3>👥 Tripulação</h3>
+                    <h3><i class="fa-solid fa-users mr-2"></i>Tripulação</h3>
                     <div class="form-group">
                         <label for="num_crewmen">Número de Tripulantes:</label>
                         <input type="number" id="num_crewmen" min="1" max="20" value="1" oninput="updateCalculations()">
@@ -368,7 +374,11 @@
             </div>
 
             <div class="summary-panel">
-                <h3>📊 Resumo da Aeronave</h3>
+                <div class="summary-header">
+                    <h3><i class="fa-solid fa-chart-line mr-2"></i>Resumo da Aeronave</h3>
+                    <i id="generate-sheet-icon" class="fa-solid fa-file-invoice generate-icon" title="Clique para gerar a ficha detalhada da aeronave"></i>
+                </div>
+
 
                 <div class="bg-gray-100 p-4 rounded-lg space-y-2" style="border: 1px solid #e0e0e0;">
                     <div class="flex justify-between items-center" style="color: #495057;">
@@ -459,8 +469,10 @@
                     <div id="metal_balance_status" class="text-sm font-medium mt-1 text-center" style="color: #495057;"></div>
                 </div>
 
-                <div id="status" class="status-indicator" style="background: #f8f9fa; color: #495057; border: 1px solid #dee2e6;">
-                    Selecione o tipo de aeronave e motor para começar
+                <div id="status-container" class="mt-4 space-y-2">
+                    <div id="status" class="status-indicator" style="background: #f8f9fa; color: #495057; border: 1px solid #dee2e6;">
+                        Selecione o tipo de aeronave e motor para começar
+                    </div>
                 </div>
             </div>
         </div>
