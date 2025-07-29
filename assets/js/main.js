@@ -650,19 +650,19 @@ function updateCalculations() {
         productionQualitySliderValue: parseInt(document.getElementById('production_quality_slider')?.value) || 50,
         defensiveTurretType: document.getElementById('defensive_turret_type')?.value,
         checkboxes: {
-            // Updated to match the HTML section IDs
-            wing_features: Array.from(document.querySelectorAll('#wing-configuration-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            engine_enhancements: Array.from(document.querySelectorAll('#engine-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            protection: Array.from(document.querySelectorAll('#protection-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            cockpit_comfort: Array.from(document.querySelectorAll('#cockpit-comfort-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            advanced_avionics: Array.from(document.querySelectorAll('#advanced-avionics-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            equipment: Array.from(document.querySelectorAll('#equipment-section input[type="checkbox"]:checked')).map(cb => cb.id),
-            maintainability_features: Array.from(document.querySelectorAll('#reliability-maintainability-section input[type="checkbox"]:checked')).map(cb => cb.id),
+            // Updated to match the HTML section IDs for direct checkbox containers
+            wing_features: Array.from(document.querySelectorAll('#wing_features_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
+            engine_enhancements: Array.from(document.querySelectorAll('#engine_enhancements_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
+            protection: Array.from(document.querySelectorAll('#protection_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
+            cockpit_comfort: Array.from(document.querySelectorAll('#cockpit_comfort_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
+            advanced_avionics: Array.from(document.querySelectorAll('#advanced_avionics_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
+            equipment: Array.from(document.querySelectorAll('#equipment_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
+            maintainability_features: Array.from(document.querySelectorAll('#maintainability_features_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
         },
         armaments: {
-            // Updated to match the HTML section IDs
-            offensive: Array.from(document.querySelectorAll('#armament-section input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 })),
-            defensive: Array.from(document.querySelectorAll('#defensive-armaments-section input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 }))
+            // Updated to match the HTML section IDs for direct armament containers
+            offensive: Array.from(document.querySelectorAll('#offensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 })),
+            defensive: Array.from(document.querySelectorAll('#defensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 }))
         }
     };
     
@@ -1083,7 +1083,7 @@ function findItemAcrossCategories(id) {
         }
     }
     return null;
-}
+    }
 
 function updateStatusAndWarnings(performance) {
     const statusContainer = document.getElementById('status-container');
