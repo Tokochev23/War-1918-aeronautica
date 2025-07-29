@@ -576,7 +576,9 @@ async function loadGameDataFromSheets() {
                 tempCountries[countryName] = {
                     tech_civil: cleanAndParseFloat(row['Tec']),
                     urbanization: cleanAndParseFloat(row['Urbanização']),
-                    tech_level_air: cleanAndParseFloat(row['Tecnologia Aeronautica']),
+                    // CORREÇÃO AQUI: Alterado de 'Tecnologia Aeronautica' para 'Aeronáutica'
+                    // conforme o cabeçalho da sua planilha.
+                    tech_level_air: cleanAndParseFloat(row['Aeronáutica']), 
                     production_capacity: 0,
                     metal_balance: 0
                 };
