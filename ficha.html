@@ -12,7 +12,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .card-collapse { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .card-collapse.expanded { max-height: 1000px; }
+        .card-collapse.expanded { max-height: 1000px; } /* Um valor grande o suficiente para o conteúdo */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .chart-container { position: relative; height: 200px; width: 100%; }
         .floating-action { position: fixed; bottom: 20px; right: 20px; z-index: 50; }
@@ -77,7 +77,7 @@
                 </div>
                 <i class="fas fa-chevron-down transform transition-transform" id="performance_card_icon"></i>
             </button>
-            <div id="performance_card" class="card-collapse">
+            <div id="performance_card" class="card-collapse expanded"> <!-- Expanded by default -->
                 <div class="p-4">
                     <div class="chart-container">
                         <canvas id="performanceChart"></canvas>
@@ -96,7 +96,7 @@
                 </div>
                 <i class="fas fa-chevron-down transform transition-transform" id="stats_card_icon"></i>
             </button>
-            <div id="stats_card" class="card-collapse">
+            <div id="stats_card" class="card-collapse expanded"> <!-- Expanded by default -->
                 <div class="p-4 space-y-3">
                     <div class="grid grid-cols-2 gap-3 text-sm">
                         <div class="flex justify-between p-2 bg-gray-50 rounded">
@@ -138,7 +138,7 @@
                 </div>
                 <i class="fas fa-chevron-down transform transition-transform" id="armament_card_icon"></i>
             </button>
-            <div id="armament_card" class="card-collapse">
+            <div id="armament_card" class="card-collapse expanded"> <!-- Expanded by default -->
                 <div class="p-4 space-y-3">
                     <div>
                         <span class="text-sm font-medium text-gray-600">Ofensivo:</span>
@@ -162,7 +162,7 @@
                 </div>
                 <i class="fas fa-chevron-down transform transition-transform" id="design_card_icon"></i>
             </button>
-            <div id="design_card" class="card-collapse">
+            <div id="design_card" class="card-collapse expanded"> <!-- Expanded by default -->
                 <div class="p-4 space-y-3 text-sm">
                     <div class="border-b pb-2">
                         <span class="font-medium text-gray-700">Tipo:</span>
@@ -206,7 +206,7 @@
                         <i class="fas fa-chevron-down text-xs transform transition-transform" id="wings_engine_card_icon"></i>
                     </div>
                 </button>
-                <div id="wings_engine_card" class="card-collapse">
+                <div id="wings_engine_card" class="card-collapse expanded"> <!-- Expanded by default -->
                     <div class="p-3 text-xs space-y-2">
                         <div>
                             <span class="font-medium text-gray-600">Asas:</span>
@@ -232,7 +232,7 @@
                         <i class="fas fa-chevron-down text-xs transform transition-transform" id="protection_cockpit_card_icon"></i>
                     </div>
                 </button>
-                <div id="protection_cockpit_card" class="card-collapse">
+                <div id="protection_cockpit_card" class="card-collapse expanded"> <!-- Expanded by default -->
                     <div class="p-3 text-xs space-y-2">
                         <div>
                             <span class="font-medium text-gray-600">Proteção:</span>
@@ -258,7 +258,7 @@
                         <i class="fas fa-chevron-down text-xs transform transition-transform" id="avionics_equipment_card_icon"></i>
                     </div>
                 </button>
-                <div id="avionics_equipment_card" class="card-collapse">
+                <div id="avionics_equipment_card" class="card-collapse expanded"> <!-- Expanded by default -->
                     <div class="p-3 text-xs space-y-2">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -387,15 +387,17 @@
             populateEquipmentList('cockpit_comfort', aircraftData.selectedCockpitComfort);
             populateEquipmentList('advanced_avionics', aircraftData.selectedAdvancedAvionics);
             populateEquipmentList('equipment', aircraftData.selectedEquipment);
+            // Added maintainability_features to populate
+            populateEquipmentList('maintainability_features', aircraftData.selectedMaintainabilityFeatures);
         }
 
         function populateEquipmentList(elementId, items) {
             const container = document.getElementById(elementId);
             container.innerHTML = ''; // Clear previous items
             if (items && items.length > 0) {
-                container.innerHTML = items.map(item => `<div class="py-1">• ${item}</div>`).join('');
+                container.innerHTML = items.map(item => `<div class="py-1 text-xs">• ${item}</div>`).join(''); // Added text-xs class
             } else {
-                container.innerHTML = '<div class="text-gray-500">Nenhum</div>';
+                container.innerHTML = '<div class="text-gray-500 text-xs">Nenhum</div>'; // Added text-xs class
             }
         }
 
@@ -489,17 +491,241 @@
         }
 
         function saveAsPNG() {
-            const container = document.getElementById('ficha_container');
-            html2canvas(container, {
-                scale: 3, // High resolution
-                useCORS: true,
-                backgroundColor: null // Transparent background for the gradient to show
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `${aircraftData.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
+            const downloadLayout = createDownloadLayout();
+            document.body.appendChild(downloadLayout);
+
+            // Give Chart.js a moment to render the chart in the hidden canvas
+            setTimeout(() => {
+                html2canvas(downloadLayout, {
+                    scale: 2, // High resolution for better quality
+                    useCORS: true,
+                    backgroundColor: null // Transparent background to show the gradient
+                }).then(canvas => {
+                    document.body.removeChild(downloadLayout); // Remove temporary layout
+
+                    const link = document.createElement('a');
+                    link.download = `${aircraftData.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            }, 100); // Small delay
+        }
+
+        function createDownloadLayout() {
+            const layout = document.createElement('div');
+            layout.style.cssText = `
+                position: fixed;
+                top: -10000px;
+                left: -10000px;
+                width: 1200px; /* Largura para layout horizontal */
+                height: 800px; /* Altura para layout horizontal */
+                background: linear-gradient(135deg, #87CEEB 0%, #1E90FF 100%); /* Fundo gradiente */
+                padding: 20px;
+                font-family: 'Inter', sans-serif;
+                box-sizing: border-box;
+                display: flex; /* Usar flexbox para o layout principal */
+                flex-direction: column; /* Colunas verticais */
+                justify-content: space-between;
+            `;
+
+            // HTML content for the horizontal layout
+            layout.innerHTML = `
+                <div style="background: white; border-radius: 15px; padding: 20px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                    <!-- Header -->
+                    <div style="background: linear-gradient(45deg, #4682B4, #5F9EA0); color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
+                        <h1 style="font-size: 28px; margin: 0 0 5px 0; font-weight: bold;">${aircraftData.aircraftName || 'Nome da Aeronave'}</h1>
+                        <p style="font-size: 16px; margin: 0; opacity: 0.9;">${aircraftData.aircraftTypeName || 'Tipo'} - ${aircraftData.doctrineName || 'Doutrina'}</p>
+                    </div>
+
+                    <!-- Main Content - Horizontal Sections -->
+                    <div style="display: flex; gap: 20px; flex: 1;">
+                        <!-- Left Section: Image and Quick Stats -->
+                        <div style="flex: 0 0 300px; display: flex; flex-direction: column; gap: 15px;">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; text-align: center;">
+                                <img src="${document.getElementById('aircraft_image').src}" style="width: 100%; height: 180px; object-fit: contain; border-radius: 8px; border: 2px solid #e2e8f0;">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                                <div style="background: #dbeafe; padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div style="color: #1d4ed8; font-weight: 600;">${aircraftData.finalUnitCost || '$0'}</div>
+                                    <div style="color: #6b7280;">Custo</div>
+                                </div>
+                                <div style="background: #dcfce7; padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div style="color: #059669; font-weight: 600;">${aircraftData.speedMax || '0 km/h'}</div>
+                                    <div style="color: #6b7280;">Vel. Máx</div>
+                                </div>
+                                <div style="background: #fae8ff; padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div style="color: #9333ea; font-weight: 600;">${aircraftData.totalPower || '0 HP'}</div>
+                                    <div style="color: #6b7280;">Potência</div>
+                                </div>
+                                <div style="background: #fed7aa; padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div style="color: #ea580c; font-weight: 600;">${aircraftData.reliability || '0%'}</div>
+                                    <div style="color: #6b7280;">Confiabilidade</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Middle Section: Performance Chart and Detailed Stats -->
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; height: 220px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📊 Gráfico de Performance</h3>
+                                <canvas id="downloadChart" style="width: 100%; height: 180px;"></canvas>
+                            </div>
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Estatísticas Detalhadas</h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; font-size: 11px;">
+                                    <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
+                                        <span style="color: #6b7280;">Peso:</span>
+                                        <span style="font-weight: 500;">${aircraftData.totalWeight || '0 kg'}</span>
+                                    </div>
+                                    <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
+                                        <span style="color: #6b7280;">Subida:</span>
+                                        <span style="font-weight: 500;">${aircraftData.rateOfClimb || '0 m/s'}</span>
+                                    </div>
+                                    <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
+                                        <span style="color: #6b7280;">Teto:</span>
+                                        <span style="font-weight: 500;">${aircraftData.serviceCeiling || '0 m'}</span>
+                                    </div>
+                                    <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
+                                        <span style="color: #6b7280;">Alcance:</span>
+                                        <span style="font-weight: 500;">${aircraftData.maxRange || '0 km'}</span>
+                                    </div>
+                                    <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
+                                        <span style="color: #6b7280;">Manobra:</span>
+                                        <span style="font-weight: 500;">${aircraftData.turnTime || '0s'}</span>
+                                    </div>
+                                    <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
+                                        <span style="color: #6b7280;">Tripulação:</span>
+                                        <span style="font-weight: 500;">${aircraftData.numCrewmen || '0'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Section: Armaments and Design Details -->
+                        <div style="flex: 0 0 350px; display: flex; flex-direction: column; gap: 15px; font-size: 11px;">
+                            <div style="background: #fef2f2; border-radius: 10px; padding: 15px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">🎯 Armamentos</h3>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="font-weight: 600; color: #6b7280;">Ofensivo:</span>
+                                    <div style="margin-top: 2px;">${aircraftData.offensiveArmamentText || 'Nenhum'}</div>
+                                </div>
+                                <div>
+                                    <span style="font-weight: 600; color: #6b7280;">Defensivo:</span>
+                                    <div style="margin-top: 2px;">${aircraftData.defensiveArmamentTexts?.join(', ') || 'Nenhum'}</div>
+                                </div>
+                            </div>
+                            <div style="background: #f3f4f6; border-radius: 10px; padding: 15px; flex: 1;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">⚙️ Projeto & Equipamentos</h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                    <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
+                                        <span style="font-weight: 600; color: #6b7280;">Tipo:</span> ${aircraftData.aircraftTypeName || '-'}
+                                    </div>
+                                    <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
+                                        <span style="font-weight: 600; color: #6b7280;">Estrutura:</span> ${aircraftData.structureTypeName || '-'}
+                                    </div>
+                                    <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
+                                        <span style="font-weight: 600; color: #6b7280;">Hélice:</span> ${aircraftData.propellerTypeName || '-'}
+                                    </div>
+                                    <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
+                                        <span style="font-weight: 600; color: #6b7280;">Refrigeração:</span> ${aircraftData.coolingSystemName || '-'}
+                                    </div>
+                                    <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
+                                        <span style="font-weight: 600; color: #6b7280;">Asa:</span> ${aircraftData.wingTypeName || '-'}
+                                    </div>
+                                    <div style="padding-bottom: 4px;">
+                                        <span style="font-weight: 600; color: #6b7280;">Trem de Pouso:</span> ${aircraftData.landingGearTypeName || '-'}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🪶 Asas:</div>
+                                        ${getEquipmentListHTML(aircraftData.selectedWingFeatures)}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🔧 Motor:</div>
+                                        ${getEquipmentListHTML(aircraftData.selectedEngineEnhancements)}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🛡️ Proteção:</div>
+                                        ${getEquipmentListHTML(aircraftData.selectedProtection)}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🪑 Cockpit:</div>
+                                        ${getEquipmentListHTML(aircraftData.selectedCockpitComfort)}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">📡 Aviônicos:</div>
+                                        ${getEquipmentListHTML(aircraftData.selectedAdvancedAvionics)}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🛠️ Equipamentos:</div>
+                                        ${getEquipmentListHTML(aircraftData.selectedEquipment)}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">⚙️ Manutenção:</div>
+                                        ${getEquipmentListHTML(aircraftData.selectedMaintainabilityFeatures)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create chart for download layout
+            setTimeout(() => {
+                if (aircraftData.performanceGraphData) {
+                    const ctx = layout.querySelector('#downloadChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: aircraftData.performanceGraphData.map(d => `${(d.altitude / 1000).toFixed(0)}km`),
+                            datasets: [{
+                                label: 'Velocidade',
+                                data: aircraftData.performanceGraphData.map(d => d.speed),
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true,
+                            }, {
+                                label: 'Subida',
+                                data: aircraftData.performanceGraphData.map(d => d.roc),
+                                borderColor: 'rgb(239, 68, 68)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.3,
+                                fill: true,
+                                yAxisID: 'y1',
+                            }]
+                        },
+                        options: {
+                            responsive: false,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: { font: { size: 10 } }
+                                }
+                            },
+                            scales: {
+                                x: { ticks: { font: { size: 9 } } },
+                                y: { position: 'left', ticks: { font: { size: 9 } } },
+                                y1: { position: 'right', ticks: { font: { size: 9 } }, grid: { drawOnChartArea: false } }
+                            }
+                        }
+                    });
+                }
+            }, 100);
+
+            return layout;
+        }
+
+        function getEquipmentListHTML(items) {
+            if (items && items.length > 0) {
+                return items.map(item => `<div style="font-size: 10px; margin-bottom: 2px;">• ${item}</div>`).join('');
+            }
+            return '<div style="font-size: 10px; color: #9ca3af;">Nenhum</div>';
         }
     </script>
 </body>
