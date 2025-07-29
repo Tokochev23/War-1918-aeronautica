@@ -41,14 +41,14 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Nome da Aeronave</label>
                                 <input type="text" id="aircraft_name" placeholder="Ex: Supermarine Spitfire" 
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                       oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        oninput="updateCalculations()">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
                                 <input type="number" id="quantity" min="1" max="9999" value="1"
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                       oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        oninput="updateCalculations()">
                             </div>
                         </div>
 
@@ -156,7 +156,7 @@
                             </div>
                         </div>
 
-                        <div id="wing_features_checkboxes">
+                        <div id="wing_features_checkboxes"> <!-- Added ID here -->
                             <label class="block text-sm font-medium text-gray-700 mb-2">Características das Asas</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -221,14 +221,14 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Número de Motores</label>
                                 <input type="number" id="num_engines" min="1" max="8" value="1"
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                       oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        oninput="updateCalculations()">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Potência por Motor (HP)</label>
                                 <input type="number" id="engine_power" min="50" max="3000" value="500"
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                       oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        oninput="updateCalculations()">
                                 <p id="engine_power_note" class="text-sm text-red-600 mt-1"></p>
                             </div>
                             <div>
@@ -274,7 +274,7 @@
                             </div>
                         </div>
 
-                        <div id="engine_enhancements_checkboxes">
+                        <div id="engine_enhancements_checkboxes"> <!-- Added ID here -->
                             <label class="block text-sm font-medium text-gray-700 mb-2">Melhorias do Motor</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -303,98 +303,98 @@
                     </div>
                     <div class="p-6 space-y-6 hidden" id="step_4_content">
                         <!-- Offensive Armaments -->
-                        <div id="offensive_armaments">
+                        <div id="offensive_armaments"> <!-- Added ID here -->
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🎯 Armamentos Ofensivos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .30 (7.62mm)</label>
                                     <input type="number" id="mg_30" min="0" max="8" value="0" 
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .50 (12.7mm)</label>
                                     <input type="number" id="mg_50" min="0" max="8" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 20mm</label>
                                     <input type="number" id="cannon_20" min="0" max="6" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 30mm</label>
                                     <input type="number" id="cannon_30" min="0" max="4" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 37mm</label>
                                     <input type="number" id="cannon_37" min="0" max="2" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão Anti-Tanque 40mm</label>
                                     <input type="number" id="cannon_at_40" min="0" max="2" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 50kg</label>
                                     <input type="number" id="bomb_50" min="0" max="20" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 100kg</label>
                                     <input type="number" id="bomb_100" min="0" max="16" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 250kg</label>
                                     <input type="number" id="bomb_250" min="0" max="8" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 500kg</label>
                                     <input type="number" id="bomb_500" min="0" max="4" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 1000kg</label>
                                     <input type="number" id="bomb_1000" min="0" max="2" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Torpedo Naval</label>
                                     <input type="number" id="torpedo" min="0" max="1" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas Incendiárias</label>
                                     <input type="number" id="incendiary" min="0" max="10" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Foguetes Ar-Terra</label>
                                     <input type="number" id="rockets" min="0" max="16" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Defensive Armaments -->
-                        <div id="defensive_armaments">
+                        <div id="defensive_armaments"> <!-- Added ID here -->
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🛡️ Armamentos Defensivos</h4>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Torre Defensiva</label>
@@ -411,20 +411,20 @@
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .30 (Defensiva)</label>
                                     <input type="number" id="defensive_mg_30" min="0" max="4" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .50 (Defensiva)</label>
                                     <input type="number" id="defensive_mg_50" min="0" max="4" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 20mm (Defensivo)</label>
                                     <input type="number" id="defensive_cannon_20" min="0" max="2" value="0"
-                                           class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                           oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                            oninput="updateCalculations()">
                                 </div>
                             </div>
                         </div>
@@ -444,7 +444,7 @@
                     </div>
                     <div class="p-6 space-y-6 hidden" id="step_5_content">
                         <!-- Protection -->
-                        <div id="protection_checkboxes">
+                        <div id="protection_checkboxes"> <!-- Added ID here -->
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🛡️ Proteção</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -467,7 +467,7 @@
                         </div>
 
                         <!-- Cockpit -->
-                        <div id="cockpit_comfort_checkboxes">
+                        <div id="cockpit_comfort_checkboxes"> <!-- Added ID here -->
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🪑 Cockpit e Conforto</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -498,7 +498,7 @@
                         </div>
 
                         <!-- Avionics -->
-                        <div id="advanced_avionics_checkboxes">
+                        <div id="advanced_avionics_checkboxes"> <!-- Added ID here -->
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">📡 Sistemas Avançados e Aviônicos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -537,7 +537,7 @@
                         </div>
                         
                         <!-- Equipment -->
-                        <div id="equipment_checkboxes">
+                        <div id="equipment_checkboxes"> <!-- Added ID here -->
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🔧 Equipamentos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -588,11 +588,25 @@
                                     <input type="checkbox" id="drop_tanks" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
                                     <label for="drop_tanks" class="text-sm">Tanques de Combustíveis Descartáveis</label>
                                 </div>
-                                <div class="checkbox-row" id="maintainability_features_checkboxes">
+                            </div>
+                        </div>
+
+                        <div id="maintainability_features_checkboxes"> <!-- Added ID here -->
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">🔧 Confiabilidade e Manutenibilidade</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="checkbox-row">
                                     <input type="checkbox" id="standardized_parts" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
                                     <label for="standardized_parts" class="text-sm">Peças Padronizadas</label>
                                 </div>
                             </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Tripulantes</label>
+                            <input type="number" id="num_crewmen" min="1" max="20" value="1"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                   oninput="updateCalculations()">
+                            <p id="crew_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                     </div>
                 </div>
@@ -654,6 +668,14 @@
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Manobra:</span>
                                 <span id="turn_time" class="text-sm font-semibold text-green-600">0 s</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium text-gray-600">Armamento:</span>
+                                <span id="main_armament" class="text-sm font-semibold text-green-600 truncate">N/A</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium text-gray-600">Confiabilidade:</span>
+                                <span id="reliability_display" class="text-sm font-semibold text-green-600">0%</span>
                             </div>
                         </div>
 
