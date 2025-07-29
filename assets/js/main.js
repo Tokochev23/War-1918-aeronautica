@@ -473,7 +473,7 @@ function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower, propD
         // Introduzir penalidade de arrasto dependente da velocidade (efeitos de compressibilidade simplificados)
         // Esta penalidade aumenta quadraticamente com a velocidade, tornando-se mais significativa em velocidades mais altas.
         const speed_kmh_current = current_v * 3.6;
-        // O fator 0.005 e o limiar de 600 km/h são ajustáveis para afinar o modelo.
+        // O fator 0.005 e o limiar de 400 km/h são ajustáveis para afinar o modelo.
         // Se as velocidades ainda estiverem muito altas, aumente 0.005. Se ficarem muito baixas, diminua.
         const speed_penalty_factor = Math.pow(Math.max(0, speed_kmh_current - 400) / 200, 2); // Penalidade começa a partir de 400 km/h, acentuada após 600 km/h
         const additional_drag_coefficient = 0.005 * speed_penalty_factor; 
@@ -616,7 +616,8 @@ async function loadGameDataFromSheets() {
             }
         });
 
-        metalsRaw.forEach(row => {
+        // CORREÇÃO AQUI: Variável 'metalsRaw' renomeada para 'metaisRaw'
+        metaisRaw.forEach(row => {
             const countryName = row['País'];
             if (tempCountries[countryName]) {
                 tempCountries[countryName].metal_balance = cleanAndParseFloat(row['Saldo']);
