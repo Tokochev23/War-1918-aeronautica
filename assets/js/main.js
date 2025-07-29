@@ -217,18 +217,19 @@ const gameData = {
     },
     components: {
         aircraft_types: {
-            light_fighter: { name: "Caça Leve", cost: 40000, weight: 1500, metal_cost: 2000, crew: 1, wing_area_m2: 18, cl_max: 1.6, cd_0: 0.022, aspect_ratio: 6.0, oswald_efficiency: 0.8, reliability_base: 0.95, maneuverability_base: 1.15, limits: { min_speed: 450, max_speed: 750, min_range: 600, max_range: 2000 }, description: "Ágil e rápido, ideal para dogfights. Geralmente levemente armado e blindado." },
-            heavy_fighter: { name: "Caça Pesado/Interceptor", cost: 75000, weight: 3500, metal_cost: 4000, crew: 2, wing_area_m2: 25, cl_max: 1.5, cd_0: 0.028, aspect_ratio: 6.5, oswald_efficiency: 0.78, reliability_base: 0.90, maneuverability_base: 0.9, limits: { min_speed: 480, max_speed: 720, min_range: 1000, max_range: 2500 }, description: "Armamento pesado e boa performance em altitude para interceptar bombardeiros. Menos ágil que caças leves." },
-            cas: { name: "Apoio Aéreo Próximo (CAS)", cost: 65000, weight: 3000, metal_cost: 3200, crew: 1, wing_area_m2: 28, cl_max: 1.7, cd_0: 0.035, aspect_ratio: 5.8, oswald_efficiency: 0.75, reliability_base: 0.98, maneuverability_base: 0.95, limits: { min_speed: 350, max_speed: 550, min_range: 500, max_range: 1500 }, description: "Robusto e bem armado para atacar alvos terrestres. Geralmente mais lento e blindado." },
-            tactical_bomber: { name: "Bombardeiro Tático", cost: 120000, weight: 5000, metal_cost: 6000, crew: 4, wing_area_m2: 50, cl_max: 1.4, cd_0: 0.030, aspect_ratio: 7.0, oswald_efficiency: 0.82, reliability_base: 0.92, maneuverability_base: 0.7, limits: { min_speed: 400, max_speed: 600, min_range: 1200, max_range: 3000 }, description: "Velocidade e alcance para atacar alvos táticos atrás das linhas inimigas. Carga de bombas moderada." },
-            strategic_bomber: { name: "Bombardeiro Estratégico", cost: 250000, weight: 12000, metal_cost: 10000, crew: 7, wing_area_m2: 100, cl_max: 1.5, cd_0: 0.028, aspect_ratio: 8.5, oswald_efficiency: 0.85, reliability_base: 0.88, maneuverability_base: 0.5, limits: { min_speed: 380, max_speed: 580, min_range: 3000, max_range: 6000 }, description: "Longo alcance e grande capacidade de bombas para missões estratégicas profundas em território inimigo." },
+            // Aumentando cd_0 para um arrasto mais realista em aeronaves da era
+            light_fighter: { name: "Caça Leve", cost: 40000, weight: 1500, metal_cost: 2000, crew: 1, wing_area_m2: 18, cl_max: 1.6, cd_0: 0.025, aspect_ratio: 6.0, oswald_efficiency: 0.8, reliability_base: 0.95, maneuverability_base: 1.15, limits: { min_speed: 450, max_speed: 750, min_range: 600, max_range: 2000 }, description: "Ágil e rápido, ideal para dogfights. Geralmente levemente armado e blindado." },
+            heavy_fighter: { name: "Caça Pesado/Interceptor", cost: 75000, weight: 3500, metal_cost: 4000, crew: 2, wing_area_m2: 25, cl_max: 1.5, cd_0: 0.030, aspect_ratio: 6.5, oswald_efficiency: 0.78, reliability_base: 0.90, maneuverability_base: 0.9, limits: { min_speed: 480, max_speed: 720, min_range: 1000, max_range: 2500 }, description: "Armamento pesado e boa performance em altitude para interceptar bombardeiros. Menos ágil que caças leves." },
+            cas: { name: "Apoio Aéreo Próximo (CAS)", cost: 65000, weight: 3000, metal_cost: 3200, crew: 1, wing_area_m2: 28, cl_max: 1.7, cd_0: 0.038, aspect_ratio: 5.8, oswald_efficiency: 0.75, reliability_base: 0.98, maneuverability_base: 0.95, limits: { min_speed: 350, max_speed: 550, min_range: 500, max_range: 1500 }, description: "Robusto e bem armado para atacar alvos terrestres. Geralmente mais lento e blindado." },
+            tactical_bomber: { name: "Bombardeiro Tático", cost: 120000, weight: 5000, metal_cost: 6000, crew: 4, wing_area_m2: 50, cl_max: 1.4, cd_0: 0.033, aspect_ratio: 7.0, oswald_efficiency: 0.82, reliability_base: 0.92, maneuverability_base: 0.7, limits: { min_speed: 400, max_speed: 600, min_range: 1200, max_range: 3000 }, description: "Velocidade e alcance para atacar alvos táticos atrás das linhas inimigas. Carga de bombas moderada." },
+            strategic_bomber: { name: "Bombardeiro Estratégico", cost: 250000, weight: 12000, metal_cost: 10000, crew: 7, wing_area_m2: 100, cl_max: 1.5, cd_0: 0.030, aspect_ratio: 8.5, oswald_efficiency: 0.85, reliability_base: 0.88, maneuverability_base: 0.5, limits: { min_speed: 380, max_speed: 580, min_range: 3000, max_range: 6000 }, description: "Longo alcance e grande capacidade de bombas para missões estratégicas profundas em território inimigo." },
             zeppelin: { name: "Zeppelin", cost: 500000, weight: 50000, metal_cost: 15000, crew: 20, wing_area_m2: 500, cl_max: 0.8, cd_0: 0.020, aspect_ratio: 1.0, oswald_efficiency: 0.7, reliability_base: 0.90, maneuverability_base: 0.1, limits: { min_speed: 80, max_speed: 150, min_range: 5000, max_range: 15000 }, description: "Dirigível gigante para bombardeio ou reconhecimento. Lento e vulnerável, mas com alcance e carga imensos." },
-            naval_fighter: { name: "Caça Naval", cost: 60000, weight: 2200, metal_cost: 2800, crew: 1, wing_area_m2: 22, cl_max: 1.65, cd_0: 0.026, aspect_ratio: 5.5, oswald_efficiency: 0.78, reliability_base: 0.93, maneuverability_base: 1.0, limits: { min_speed: 420, max_speed: 680, min_range: 800, max_range: 2200 }, description: "Caça adaptado para operações em porta-aviões, com estrutura reforçada e geralmente asas dobráveis." },
-            naval_cas: { name: "CAS Naval", cost: 90000, weight: 4000, metal_cost: 4500, crew: 2, wing_area_m2: 35, cl_max: 1.75, cd_0: 0.038, aspect_ratio: 5.2, oswald_efficiency: 0.72, reliability_base: 0.96, maneuverability_base: 0.85, limits: { min_speed: 320, max_speed: 520, min_range: 700, max_range: 1800 }, description: "Aeronave de ataque naval, incluindo bombardeiros de mergulho e torpedeiros." },
-            naval_bomber: { name: "Bombardeiro Naval", cost: 150000, weight: 6000, metal_cost: 7000, crew: 4, wing_area_m2: 60, cl_max: 1.5, cd_0: 0.032, aspect_ratio: 7.5, oswald_efficiency: 0.8, reliability_base: 0.90, maneuverability_base: 0.6, limits: { min_speed: 380, max_speed: 550, min_range: 2000, max_range: 4000 }, description: "Bombardeiro médio/pesado adaptado para operações navais, geralmente baseado em terra." },
-            naval_recon: { name: "Reconhecimento Naval", cost: 45000, weight: 2000, metal_cost: 2000, crew: 2, wing_area_m2: 25, cl_max: 1.4, cd_0: 0.024, aspect_ratio: 8.0, oswald_efficiency: 0.85, reliability_base: 0.97, maneuverability_base: 0.8, limits: { min_speed: 250, max_speed: 450, min_range: 1500, max_range: 5000 }, description: "Aeronave de longo alcance para patrulha marítima e reconhecimento." },
-            transport: { name: "Transporte", cost: 100000, weight: 8000, metal_cost: 5000, crew: 4, wing_area_m2: 80, cl_max: 1.8, cd_0: 0.040, aspect_ratio: 7.0, oswald_efficiency: 0.75, reliability_base: 0.95, maneuverability_base: 0.4, limits: { min_speed: 200, max_speed: 400, min_range: 1000, max_range: 3500 }, description: "Projetado para transportar tropas ou carga. Lento e vulnerável, com pouca ou nenhuma capacidade de combate." },
-            seaplane: { name: "Hidroavião", cost: 55000, weight: 2500, metal_cost: 2500, crew: 3, wing_area_m2: 30, cl_max: 1.5, cd_0: 0.045, aspect_ratio: 6.0, oswald_efficiency: 0.7, reliability_base: 0.94, maneuverability_base: 0.75, limits: { min_speed: 220, max_speed: 420, min_range: 800, max_range: 2500 }, description: "Capaz de pousar e decolar da água. Usado para reconhecimento, patrulha e resgate." },
+            naval_fighter: { name: "Caça Naval", cost: 60000, weight: 2200, metal_cost: 2800, crew: 1, wing_area_m2: 22, cl_max: 1.65, cd_0: 0.028, aspect_ratio: 5.5, oswald_efficiency: 0.78, reliability_base: 0.93, maneuverability_base: 1.0, limits: { min_speed: 420, max_speed: 680, min_range: 800, max_range: 2200 }, description: "Caça adaptado para operações em porta-aviões, com estrutura reforçada e geralmente asas dobráveis." },
+            naval_cas: { name: "CAS Naval", cost: 90000, weight: 4000, metal_cost: 4500, crew: 2, wing_area_m2: 35, cl_max: 1.75, cd_0: 0.040, aspect_ratio: 5.2, oswald_efficiency: 0.72, reliability_base: 0.96, maneuverability_base: 0.85, limits: { min_speed: 320, max_speed: 520, min_range: 700, max_range: 1800 }, description: "Aeronave de ataque naval, incluindo bombardeiros de mergulho e torpedeiros." },
+            naval_bomber: { name: "Bombardeiro Naval", cost: 150000, weight: 6000, metal_cost: 7000, crew: 4, wing_area_m2: 60, cl_max: 1.5, cd_0: 0.035, aspect_ratio: 7.5, oswald_efficiency: 0.8, reliability_base: 0.90, maneuverability_base: 0.6, limits: { min_speed: 380, max_speed: 550, min_range: 2000, max_range: 4000 }, description: "Bombardeiro médio/pesado adaptado para operações navais, geralmente baseado em terra." },
+            naval_recon: { name: "Reconhecimento Naval", cost: 45000, weight: 2000, metal_cost: 2000, crew: 2, wing_area_m2: 25, cl_max: 1.4, cd_0: 0.027, aspect_ratio: 8.0, oswald_efficiency: 0.85, reliability_base: 0.97, maneuverability_base: 0.8, limits: { min_speed: 250, max_speed: 450, min_range: 1500, max_range: 5000 }, description: "Aeronave de longo alcance para patrulha marítima e reconhecimento." },
+            transport: { name: "Transporte", cost: 100000, weight: 8000, metal_cost: 5000, crew: 4, wing_area_m2: 80, cl_max: 1.8, cd_0: 0.042, aspect_ratio: 7.0, oswald_efficiency: 0.75, reliability_base: 0.95, maneuverability_base: 0.4, limits: { min_speed: 200, max_speed: 400, min_range: 1000, max_range: 3500 }, description: "Projetado para transportar tropas ou carga. Lento e vulnerável, com pouca ou nenhuma capacidade de combate." },
+            seaplane: { name: "Hidroavião", cost: 55000, weight: 2500, metal_cost: 2500, crew: 3, wing_area_m2: 30, cl_max: 1.5, cd_0: 0.048, aspect_ratio: 6.0, oswald_efficiency: 0.7, reliability_base: 0.94, maneuverability_base: 0.75, limits: { min_speed: 220, max_speed: 420, min_range: 800, max_range: 2500 }, description: "Capaz de pousar e decolar da água. Usado para reconhecimento, patrulha e resgate." },
         },
         structure_materials: {
             wood_fabric: { name: "Madeira e Tecido", cost_mod: 0.7, weight_mod: 0.8, reliability_mod: 0.9, armor_mod: 0.7, description: "Leve e barato, mas frágil e vulnerável a fogo. Comum em designs mais antigos ou leves." },
@@ -460,32 +461,49 @@ function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower, propD
     const powerWatts = powerAtAltitude * 745.7; // Convert HP to Watts
 
     let v_ms = 150; // Initial guess for speed in m/s
-    // Iterative solution to find the equilibrium speed where thrust equals drag
-    for (let i = 0; i < 10; i++) { // Increased iterations for better convergence
-        const thrust = (powerWatts * propData.efficiency) / Math.max(v_ms, 30); // Prevent division by zero
-        const CL = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * v_ms * v_ms * aero.wing_area_m2);
+    let best_v_ms = v_ms;
+    let min_diff = Infinity;
+
+    // Iterar através de uma faixa de velocidades para encontrar a melhor correspondência onde empuxo ~ arrasto
+    // Isso é mais robusto do que o ajuste simples de +/- 5.
+    for (let current_v = 50; current_v <= 350; current_v += 1) { // Iterar de 50 m/s a 350 m/s (180 km/h a 1260 km/h)
+        const CL = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * current_v * current_v * aero.wing_area_m2);
         const CDi = (CL * CL) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-        const CD = aero.cd_0 * aero.drag_mod + CDi;
-        const dragForce = 0.5 * airProps.density * v_ms * v_ms * aero.wing_area_m2 * CD;
         
-        // Simple adjustment to converge: if thrust > drag, increase speed; if drag > thrust, decrease speed
-        if (thrust > dragForce && v_ms < 300) { // Cap speed to prevent runaway values
-            v_ms += 5;
-        } else if (dragForce > thrust && v_ms > 50) { // Lower bound for speed
-            v_ms -= 5;
-        } else {
-            break; // Converged
+        // Introduzir penalidade de arrasto dependente da velocidade (efeitos de compressibilidade simplificados)
+        // Esta penalidade aumenta quadraticamente com a velocidade, tornando-se mais significativa em velocidades mais altas.
+        const speed_kmh_current = current_v * 3.6;
+        // O fator 0.005 e o limiar de 600 km/h são ajustáveis para afinar o modelo.
+        // Se as velocidades ainda estiverem muito altas, aumente 0.005. Se ficarem muito baixas, diminua.
+        const speed_penalty_factor = Math.pow(Math.max(0, speed_kmh_current - 400) / 200, 2); // Penalidade começa a partir de 400 km/h, acentuada após 600 km/h
+        const additional_drag_coefficient = 0.005 * speed_penalty_factor; 
+
+        const CD = aero.cd_0 * aero.drag_mod + CDi + additional_drag_coefficient;
+        
+        const current_drag_force = 0.5 * airProps.density * current_v * current_v * aero.wing_area_m2 * CD;
+        const current_thrust_force = (powerWatts * propData.efficiency) / Math.max(current_v, 1); // Evitar divisão por zero
+
+        const diff = Math.abs(current_thrust_force - current_drag_force);
+
+        if (diff < min_diff) {
+            min_diff = diff;
+            best_v_ms = current_v;
         }
     }
-    
-    // Recalculate with the converged speed for final values
+    v_ms = best_v_ms;
+
+    // Recalcular com a melhor velocidade para os valores finais
     const CL_final = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * v_ms * v_ms * aero.wing_area_m2);
     const CDi_final = (CL_final * CL_final) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-    const CD_final = aero.cd_0 * aero.drag_mod + CDi_final;
+    const speed_kmh_final = v_ms * 3.6;
+    const speed_penalty_factor_final = Math.pow(Math.max(0, speed_kmh_final - 400) / 200, 2);
+    const additional_drag_coefficient_final = 0.005 * speed_penalty_factor_final;
+
+    const CD_final = aero.cd_0 * aero.drag_mod + CDi_final + additional_drag_coefficient_final;
     const dragForce_final = 0.5 * airProps.density * v_ms * v_ms * aero.wing_area_m2 * CD_final;
     const thrust_final = (powerWatts * propData.efficiency) / Math.max(v_ms, 30);
 
-    return { speed_kmh: v_ms * 3.6, roc_ms: 0, v_ms: v_ms, drag_newtons: dragForce_final, thrust_newtons: thrust_final }; // roc_ms will be calculated separately
+    return { speed_kmh: speed_kmh_final, roc_ms: 0, v_ms: v_ms, drag_newtons: dragForce_final, thrust_newtons: thrust_final };
 }
 
 /**
@@ -509,7 +527,13 @@ function calculateRateOfClimb(h, combatWeight, totalEnginePower, propData, aero,
     
     const CL_climb = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * climbSpeed_ms * climbSpeed_ms * aero.wing_area_m2);
     const CDi_climb = (CL_climb * CL_climb) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-    const CD_climb = aero.cd_0 * aero.drag_mod + CDi_climb;
+    
+    // Aplicar a mesma penalidade de arrasto dependente da velocidade para a subida
+    const speed_kmh_climb = climbSpeed_ms * 3.6;
+    const speed_penalty_factor_climb = Math.pow(Math.max(0, speed_kmh_climb - 400) / 200, 2);
+    const additional_drag_coefficient_climb = 0.005 * speed_penalty_factor_climb;
+
+    const CD_climb = aero.cd_0 * aero.drag_mod + CDi_climb + additional_drag_coefficient_climb;
     const dragForce_climb = 0.5 * airProps.density * climbSpeed_ms * climbSpeed_ms * aero.wing_area_m2 * CD_climb;
 
     const excessPower = (thrust * climbSpeed_ms) - (dragForce_climb * climbSpeed_ms);
@@ -592,7 +616,7 @@ async function loadGameDataFromSheets() {
             }
         });
 
-        metaisRaw.forEach(row => {
+        metalsRaw.forEach(row => {
             const countryName = row['País'];
             if (tempCountries[countryName]) {
                 tempCountries[countryName].metal_balance = cleanAndParseFloat(row['Saldo']);
