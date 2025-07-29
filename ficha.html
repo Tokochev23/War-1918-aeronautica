@@ -342,7 +342,8 @@
             if (aircraftDataString) {
                 aircraftData = JSON.parse(aircraftDataString);
                 populateSheet();
-                createPerformanceChart();
+                // We no longer need to create the performance chart on the main view if it's not displayed
+                // createPerformanceChart(); 
             } else {
                 document.getElementById('aircraft_name').textContent = 'Dados não encontrados';
                 document.getElementById('aircraft_subtitle').textContent = 'Volte e gere a ficha novamente.';
@@ -413,6 +414,9 @@
         }
 
         function createPerformanceChart() {
+            // This function is now only called when needed for the download layout
+            // It's not used for the on-screen display anymore based on the user's request.
+            // Keeping it here in case it's needed for other purposes or future changes.
             if (!aircraftData.performanceGraphData) return;
 
             const ctx = document.getElementById('performanceChart').getContext('2d');
@@ -564,12 +568,8 @@
                             </div>
                         </div>
 
-                        <!-- Middle Section: Performance Chart and Detailed Stats -->
+                        <!-- Middle Section: Detailed Stats (now takes the place of the chart) -->
                         <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
-                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; height: 220px;">
-                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📊 Gráfico de Performance</h3>
-                                <canvas id="downloadChart" style="width: 100%; height: 180px;"></canvas>
-                            </div>
                             <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Estatísticas Detalhadas</h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; font-size: 11px;">
@@ -601,7 +601,7 @@
                             </div>
                         </div>
 
-                        <!-- Right Section: Armaments and Design Details -->
+                        <!-- Right Section: Armaments and Design Details (now larger) -->
                         <div style="flex: 0 0 350px; display: flex; flex-direction: column; gap: 15px; font-size: 11px;">
                             <div style="background: #fef2f2; border-radius: 10px; padding: 15px;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">🎯 Armamentos</h3>
@@ -673,50 +673,9 @@
                 </div>
             `;
 
-            // Create chart for download layout
-            setTimeout(() => {
-                if (aircraftData.performanceGraphData) {
-                    const ctx = layout.querySelector('#downloadChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: aircraftData.performanceGraphData.map(d => `${(d.altitude / 1000).toFixed(0)}km`),
-                            datasets: [{
-                                label: 'Velocidade',
-                                data: aircraftData.performanceGraphData.map(d => d.speed),
-                                borderColor: 'rgb(59, 130, 246)',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                tension: 0.3,
-                                fill: true,
-                            }, {
-                                label: 'Subida',
-                                data: aircraftData.performanceGraphData.map(d => d.roc),
-                                borderColor: 'rgb(239, 68, 68)',
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                tension: 0.3,
-                                fill: true,
-                                yAxisID: 'y1',
-                            }]
-                        },
-                        options: {
-                            responsive: false,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: { font: { size: 10 } }
-                                }
-                            },
-                            scales: {
-                                x: { ticks: { font: { size: 9 } } },
-                                y: { position: 'left', ticks: { font: { size: 9 } } },
-                                y1: { position: 'right', ticks: { font: { size: 9 } }, grid: { drawOnChartArea: false } }
-                            }
-                        }
-                    });
-                }
-            }, 100);
+            // We no longer need to create a chart for the download layout if it's removed
+            // The setTimeout block for Chart.js initialization is also removed from here.
+            // If you decide to add a chart back to the horizontal layout, you'll need to re-add it here.
 
             return layout;
         }
