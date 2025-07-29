@@ -156,7 +156,7 @@
                             </div>
                         </div>
 
-                        <div id="wing_features_checkboxes"> <!-- Added ID here -->
+                        <div id="wing_features_checkboxes">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Características das Asas</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -274,7 +274,7 @@
                             </div>
                         </div>
 
-                        <div id="engine_enhancements_checkboxes"> <!-- Added ID here -->
+                        <div id="engine_enhancements_checkboxes">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Melhorias do Motor</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -303,7 +303,7 @@
                     </div>
                     <div class="p-6 space-y-6 hidden" id="step_4_content">
                         <!-- Offensive Armaments -->
-                        <div id="offensive_armaments"> <!-- Added ID here -->
+                        <div id="offensive_armaments">
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🎯 Armamentos Ofensivos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="form-row">
@@ -394,7 +394,7 @@
                         </div>
 
                         <!-- Defensive Armaments -->
-                        <div id="defensive_armaments"> <!-- Added ID here -->
+                        <div id="defensive_armaments">
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🛡️ Armamentos Defensivos</h4>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Torre Defensiva</label>
@@ -444,7 +444,7 @@
                     </div>
                     <div class="p-6 space-y-6 hidden" id="step_5_content">
                         <!-- Protection -->
-                        <div id="protection_checkboxes"> <!-- Added ID here -->
+                        <div id="protection_checkboxes">
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🛡️ Proteção</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -467,7 +467,7 @@
                         </div>
 
                         <!-- Cockpit -->
-                        <div id="cockpit_comfort_checkboxes"> <!-- Added ID here -->
+                        <div id="cockpit_comfort_checkboxes">
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🪑 Cockpit e Conforto</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -498,7 +498,7 @@
                         </div>
 
                         <!-- Avionics -->
-                        <div id="advanced_avionics_checkboxes"> <!-- Added ID here -->
+                        <div id="advanced_avionics_checkboxes">
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">📡 Sistemas Avançados e Aviônicos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -537,7 +537,7 @@
                         </div>
                         
                         <!-- Equipment -->
-                        <div id="equipment_checkboxes"> <!-- Added ID here -->
+                        <div id="equipment_checkboxes">
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🔧 Equipamentos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
@@ -590,24 +590,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div id="maintainability_features_checkboxes"> <!-- Added ID here -->
-                            <h4 class="text-lg font-semibold text-gray-800 mb-3">🔧 Confiabilidade e Manutenibilidade</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div class="checkbox-row">
-                                    <input type="checkbox" id="standardized_parts" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
-                                    <label for="standardized_parts" class="text-sm">Peças Padronizadas</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Tripulantes</label>
-                            <input type="number" id="num_crewmen" min="1" max="20" value="1"
-                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                   oninput="updateCalculations()">
-                            <p id="crew_note" class="text-sm text-gray-600 mt-1"></p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -655,19 +637,19 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Subida:</span>
-                                <span id="rate_of_climb" class="text-sm font-semibold text-green-600">0 m/s</span>
+                                <span id="rate_of_climb" class="font-medium text-green-600">0 m/s</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Teto:</span>
-                                <span id="service_ceiling" class="text-sm font-semibold text-green-600">0 m</span>
+                                <span id="service_ceiling" class="font-medium text-green-600">0 m</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Alcance:</span>
-                                <span id="max_range" class="text-sm font-semibold text-green-600">0 km</span>
+                                <span id="max_range" class="font-medium text-green-600">0 km</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Manobra:</span>
-                                <span id="turn_time" class="text-sm font-semibold text-green-600">0 s</span>
+                                <span id="turn_time" class="font-medium text-green-600">0 s</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Armamento:</span>
@@ -679,7 +661,7 @@
                             </div>
                         </div>
 
-                        <!-- Technical -->
+                        <!-- Technical - REMOVED DUPLICATE ARMAMENT AND RELIABILITY HERE -->
                         <div class="bg-blue-50 p-3 rounded-lg space-y-2">
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Peso:</span>
@@ -689,14 +671,8 @@
                                 <span class="text-sm font-medium text-gray-600">Potência:</span>
                                 <span id="total_power" class="text-sm font-semibold text-blue-600">0 hp</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm font-medium text-gray-600">Confiabilidade:</span>
-                                <span id="reliability_display" class="text-sm font-semibold text-blue-600">0%</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm font-medium text-gray-600">Armamento:</span>
-                                <span id="main_armament" class="text-sm font-semibold text-blue-600 truncate">N/A</span>
-                            </div>
+                            <!-- REMOVIDO: Confiabilidade duplicada -->
+                            <!-- REMOVIDO: Armamento duplicado -->
                         </div>
 
                         <!-- Costs -->
