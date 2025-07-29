@@ -377,6 +377,114 @@ const gameData = {
     }
 };
 
+// --- DATA LOADING FUNCTIONS (Restored) ---
+function cleanAndParseFloat(value) {
+    if (typeof value !== 'string') return parseFloat(value) || 0;
+    const cleanedValue = value.trim().replace('£', '').replace(/\./g, '').replace(',', '.').replace('%', '');
+    return parseFloat(cleanedValue) || 0;
+}
+
+async function parseCSV(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Erro ao carregar CSV de ${url}: ${response.statusText}`);
+        const csvText = await response.text();
+        
+        const lines = csvText.trim().split('\n').filter(line => line.trim() !== '');
+        if (lines.length < 1) return [];
+
+        const robustSplit = (str) => {
+            return str.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => {
+                let value = v.trim();
+                if (value.startsWith('"') && value.endsWith('"')) value = value.substring(1, value.length - 1);
+                return value.replace(/""/g, '"');
+            });
+        };
+
+        const headers = robustSplit(lines[0].trim());
+        
+        return lines.slice(1).map(line => {
+            const values = robustSplit(line.trim());
+            let row = {};
+            headers.forEach((header, i) => { row[header] = values[i] || ''; });
+            return row;
+        });
+    } catch (error) {
+        console.error(`Erro na requisição de rede para ${url}:`, error);
+        throw error;
+    }
+}
+
+async function loadGameDataFromSheets() {
+    const countryDropdown = document.getElementById('country_doctrine');
+    countryDropdown.innerHTML = '<option value="loading">Carregando dados...</option>';
+    countryDropdown.disabled = true;
+
+    try {
+        const [countryStatsRaw, aeronavesRaw, metaisRaw] = await Promise.all([
+            parseCSV(COUNTRY_STATS_URL),
+            parseCSV(AERONAVES_URL),
+            parseCSV(METAIS_URL)
+        ]);
+
+        const tempCountries = {};
+        countryStatsRaw.forEach(row => {
+            const countryName = row['País'];
+            if (countryName) {
+                tempCountries[countryName] = {
+                    tech_civil: cleanAndParseFloat(row['Tec']),
+                    urbanization: cleanAndParseFloat(row['Urbanização']),
+                    tech_level_air: cleanAndParseFloat(row['Tecnologia Aeronautica']),
+                    production_capacity: 0,
+                    metal_balance: 0
+                };
+            }
+        });
+
+        aeronavesRaw.forEach(row => {
+            const countryName = row['País'];
+            if (tempCountries[countryName]) {
+                tempCountries[countryName].production_capacity = cleanAndParseFloat(row['Capacidade de produção']);
+            }
+        });
+
+        metaisRaw.forEach(row => {
+            const countryName = row['País'];
+            if (tempCountries[countryName]) {
+                tempCountries[countryName].metal_balance = cleanAndParseFloat(row['Saldo']);
+            }
+        });
+        
+        tempCountries["Genérico / Padrão"] = { production_capacity: 100000000, metal_balance: 5000000, tech_level_air: 50, tech_civil: 50, urbanization: 50 };
+
+        gameData.countries = tempCountries;
+        populateCountryDropdown();
+        countryDropdown.disabled = false;
+        
+    } catch (error) {
+        console.error("Erro fatal ao carregar dados das planilhas:", error);
+        countryDropdown.innerHTML = '<option value="error">Erro ao carregar</option>';
+        gameData.countries = { "Genérico / Padrão": { production_capacity: 100000000, metal_balance: 5000000, tech_level_air: 50, tech_civil: 50, urbanization: 50 } };
+        populateCountryDropdown();
+        countryDropdown.disabled = false;
+    }
+}
+
+function populateCountryDropdown() {
+    const dropdown = document.getElementById('country_doctrine');
+    dropdown.innerHTML = '';
+    const sortedCountries = Object.keys(gameData.countries).sort();
+    sortedCountries.forEach(countryName => {
+        const option = document.createElement('option');
+        option.value = countryName;
+        option.textContent = countryName;
+        dropdown.appendChild(option);
+    });
+    if (gameData.countries["Genérico / Padrão"]) {
+        dropdown.value = "Genérico / Padrão";
+    }
+}
+
 // --- MAIN CALCULATION FUNCTION ---
 function updateCalculations() {
     const inputs = gatherInputs();
@@ -388,11 +496,10 @@ function updateCalculations() {
     }
     
     const modifiedStats = applyModifiers(baseStats, inputs);
-    const performance = calculatePerformance(modifiedStats);
+    const performance = calculatePerformance(modifiedStats, inputs);
 
     updateUI(performance);
     
-    // Save state for undo/redo
     if (performance) {
         stateManager.saveState(inputs);
     }
@@ -466,12 +573,16 @@ function applyModifiers(baseStats, inputs) {
     let { baseUnitCost, baseMetalCost, totalEmptyWeight, reliabilityModifier, aero } = baseStats;
     const { doctrineData, structureData, wingData, landingGearData, propData, coolingData, fuelFeedData, superchargerData, engineData } = getComponentData(inputs);
 
-    // Apply modifiers from components
     if (doctrineData) {
         baseUnitCost *= doctrineData.cost_modifier || 1;
         reliabilityModifier *= doctrineData.reliability_modifier || 1;
         totalEmptyWeight *= doctrineData.weight_penalty || 1;
-        if (doctrineData.performance_bonus) Object.assign(aero, { ...aero, ...doctrineData.performance_bonus });
+        if (doctrineData.performance_bonus) {
+            aero.speed_mod *= doctrineData.performance_bonus.speed || 1;
+            aero.maneuverability_mod *= doctrineData.performance_bonus.maneuverability || 1;
+            aero.range_mod *= doctrineData.performance_bonus.range || 1;
+            aero.ceiling_mod *= doctrineData.performance_bonus.service_ceiling || 1;
+        }
     }
     
     [structureData, wingData].forEach(data => {
@@ -479,13 +590,11 @@ function applyModifiers(baseStats, inputs) {
             baseUnitCost *= data.cost_mod || 1;
             totalEmptyWeight *= data.weight_mod || 1;
             reliabilityModifier *= data.reliability_mod || 1;
-            Object.assign(aero, {
-                drag_mod: aero.drag_mod * (data.drag_mod || 1),
-                cl_max: aero.cl_max * (data.cl_max_mod || 1),
-                cd_0: aero.cd_0 * (data.cd_0_mod || 1),
-                aspect_ratio: aero.aspect_ratio * (data.aspect_ratio_mod || 1),
-                maneuverability_mod: aero.maneuverability_mod * (data.maneuverability_mod || 1)
-            });
+            aero.drag_mod *= data.drag_mod || 1;
+            aero.cl_max *= data.cl_max_mod || 1;
+            aero.cd_0 *= data.cd_0_mod || 1;
+            aero.aspect_ratio *= data.aspect_ratio_mod || 1;
+            aero.maneuverability_mod *= data.maneuverability_mod || 1;
         }
     });
 
@@ -497,7 +606,6 @@ function applyModifiers(baseStats, inputs) {
         reliabilityModifier *= landingGearData.reliability_mod;
     }
 
-    // Engines & Propulsion
     let totalEnginePower = 0;
     document.getElementById('engine_power_note').textContent = "";
     if (inputs.enginePower >= engineData.min_power && inputs.enginePower <= engineData.max_power) {
@@ -520,7 +628,6 @@ function applyModifiers(baseStats, inputs) {
         }
     });
 
-    // Checkbox components
     for (const category in inputs.checkboxes) {
         inputs.checkboxes[category].forEach(id => {
             const item = findItemAcrossCategories(id);
@@ -539,7 +646,6 @@ function applyModifiers(baseStats, inputs) {
         });
     }
 
-    // Armaments
     let armamentWeight = 0, armamentCost = 0, armamentMetalCost = 0;
     let offensiveArmamentTexts = [];
     inputs.armaments.offensive.forEach(arm => {
@@ -554,7 +660,6 @@ function applyModifiers(baseStats, inputs) {
     baseUnitCost += armamentCost;
     baseMetalCost += armamentMetalCost;
 
-    // Defensive Armaments
     let defensiveArmamentTexts = [];
     const turretData = gameData.components.defensive_armaments[inputs.defensiveTurretType];
     if (turretData && inputs.defensiveTurretType !== "none_turret") {
@@ -594,7 +699,12 @@ function calculatePerformance(modifiedStats, inputs) {
     if (countryData) {
         const civilTechReduction = (countryData.tech_civil / gameData.constants.max_tech_civil_level) * gameData.constants.country_cost_reduction_factor;
         const urbanizationReduction = (countryData.urbanization / gameData.constants.max_urbanization_level) * gameData.constants.urbanization_cost_reduction_factor;
-        adjustedUnitCost *= (1 - Math.min(0.75, civilTechReduction + urbanizationReduction));
+        const costReduction = Math.min(0.75, civilTechReduction + urbanizationReduction);
+        adjustedUnitCost *= (1 - costReduction);
+        const bonusNoteEl = document.getElementById('country_bonus_note');
+        if (bonusNoteEl) {
+            bonusNoteEl.textContent = `Tec. Civil: ${countryData.tech_civil}, Tec. Aérea: ${countryData.tech_level_air} | Redução de Custo: ${(costReduction * 100).toFixed(1)}%`;
+        }
     }
 
     const perfSL = calculatePerformanceAtAltitude(0, combatWeight, totalEnginePower, propData, aero, superchargerData);
@@ -640,7 +750,7 @@ function updateUI(performance) {
         document.getElementById('status').textContent = "Selecione o tipo de aeronave e um motor com potência válida para começar.";
         return;
     }
-    const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData, rawSpeedKmhAlt, rawRangeKm } = performance;
+    const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData } = performance;
     
     const elements = {
         'display_name': inputs.aircraftName, 'display_type': typeData.name, 'display_doctrine': gameData.doctrines[inputs.selectedAirDoctrine]?.name || '-',
@@ -730,7 +840,7 @@ function updateProgress() {
 function generateSheet() {
     const performanceData = updateCalculations();
     if (performanceData) {
-        const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, defensiveArmamentTexts, aero, propData, superchargerData, typeData } = performanceData;
+        const { inputs, adjustedUnitCost, combatWeight, totalEnginePower, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, defensiveArmamentTexts, aero, propData, superchargerData, typeData } = performanceData;
         
         const sheetData = {
             ...inputs,
@@ -801,8 +911,10 @@ function getComponentData(inputs) {
 }
 
 function findItemAcrossCategories(id) {
-    for (const category of Object.values(gameData.components)) {
-        if (category[id]) return category[id];
+    for (const categoryKey in gameData.components) {
+        if (gameData.components[categoryKey][id]) {
+            return gameData.components[categoryKey][id];
+        }
     }
     return null;
 }
@@ -842,7 +954,7 @@ window.onload = function() {
     loadGameDataFromSheets().then(() => {
         toggleStep(1);
         updateCalculations();
-        stateManager.saveState(autoSaveManager.getCurrentFormData()); // Save initial state
+        stateManager.saveState(autoSaveManager.getCurrentFormData());
     });
 
     createTemplateMenu();
