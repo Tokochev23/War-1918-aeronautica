@@ -1,9 +1,9 @@
 // assets/js/main.js - Enhanced Version with All Improvements
 
 // --- CONFIGURAÇÃO DA PLANILHA DO GOOGLE SHEETS ---
-const COUNTRY_STATS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27UAlKLizQBXBO/pub?gid=0&single=true&output=csv';
-const METAIS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27UAlKLizQBXBO/pub?gid=1505649898&single=true&output=csv';
-const AERONAVES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27UAlKLizQBXBO/pub?gid=565684512&single=true&output=csv';
+const COUNTRY_STATS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27AAlKLizQBXBO/pub?gid=0&single=true&output=csv';
+const METAIS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27AAlKLizQBXBO/pub?gid=1505649898&single=true&output=csv';
+const AERONAVES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27AAlKLizQBXBO/pub?gid=565684512&single=true&output=csv';
 
 // --- UTILITY FUNCTIONS ---
 function debounce(func, wait) {
@@ -485,6 +485,125 @@ function populateCountryDropdown() {
     }
 }
 
+// --- AERODYNAMIC AND PERFORMANCE CALCULATION FUNCTIONS ---
+
+/**
+ * Calculates air properties (density, temperature, pressure) at a given altitude.
+ * Uses the International Standard Atmosphere (ISA) model.
+ * @param {number} altitude_m - Altitude in meters.
+ * @returns {object} - Object containing density (kg/m^3), temperature (K), and pressure (Pa).
+ */
+function getAirPropertiesAtAltitude(altitude_m) {
+    const { temp_sea_level_k, temp_lapse_rate_k_per_m, pressure_sea_level_pa, density_sea_level_kg_m3, gas_constant_air_specific, standard_gravity_ms2 } = gameData.constants;
+
+    if (altitude_m < 11000) { // Troposphere
+        const temperature_k = temp_sea_level_k - (temp_lapse_rate_k_per_m * altitude_m);
+        const pressure_pa = pressure_sea_level_pa * Math.pow(temperature_k / temp_sea_level_k, standard_gravity_ms2 / (temp_lapse_rate_k_per_m * gas_constant_air_specific));
+        const density_kg_m3 = pressure_pa / (gas_constant_air_specific * temperature_k);
+        return { density: density_kg_m3, temperature: temperature_k, pressure: pressure_pa };
+    } else { // Stratosphere (constant temperature at 11000m)
+        const temperature_k_11000 = temp_sea_level_k - (temp_lapse_rate_k_per_m * 11000);
+        const pressure_pa_11000 = pressure_sea_level_pa * Math.pow(temperature_k_11000 / temp_sea_level_k, standard_gravity_ms2 / (temp_lapse_rate_k_per_m * gas_constant_air_specific));
+        
+        const pressure_pa = pressure_pa_11000 * Math.exp(-standard_gravity_ms2 * (altitude_m - 11000) / (gas_constant_air_specific * temperature_k_11000));
+        const density_kg_m3 = pressure_pa / (gas_constant_air_specific * temperature_k_11000);
+        return { density: density_kg_m3, temperature: temperature_k_11000, pressure: pressure_pa };
+    }
+}
+
+/**
+ * Calculates the performance of the aircraft at a given altitude.
+ * @param {number} altitude_m - Altitude in meters.
+ * @param {number} combatWeight - Total weight of the aircraft in kg.
+ * @param {number} totalEnginePower - Total engine power in HP.
+ * @param {object} propData - Propeller data (efficiency).
+ * @param {object} aero - Aerodynamic data (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod).
+ * @param {object} superchargerData - Supercharger data (rated_altitude_m).
+ * @returns {object} - Object containing speed (m/s, km/h), drag (N), and thrust (N).
+ */
+function calculatePerformanceAtAltitude(altitude_m, combatWeight, totalEnginePower, propData, aero, superchargerData) {
+    const { density } = getAirPropertiesAtAltitude(altitude_m);
+    const { standard_gravity_ms2 } = gameData.constants;
+
+    const wing_area_m2 = aero.wing_area_m2;
+    const cd_0 = aero.cd_0 * aero.drag_mod;
+    const aspect_ratio = aero.aspect_ratio;
+    const oswald_efficiency = aero.oswald_efficiency;
+    const propeller_efficiency = propData.efficiency;
+
+    // Adjust engine power for altitude and supercharger
+    let altitude_power_factor = 1.0;
+    if (superchargerData.rated_altitude_m > 0) {
+        if (altitude_m <= superchargerData.rated_altitude_m) {
+            altitude_power_factor = 1.0; // Full power up to rated altitude
+        } else {
+            // Power decreases linearly above rated altitude
+            altitude_power_factor = Math.max(0.1, 1 - ((altitude_m - superchargerData.rated_altitude_m) / 10000)); // Example: 10km above rated altitude, power is 0.1
+        }
+    } else {
+        // Naturally aspirated engine: power decreases with density
+        altitude_power_factor = density / gameData.constants.density_sea_level_kg_m3;
+    }
+    const engine_power_watts = totalEnginePower * 745.7 * altitude_power_factor; // Convert HP to Watts
+
+    const weight_newtons = combatWeight * standard_gravity_ms2;
+
+    let speed_ms = 0;
+    let drag_newtons = 0;
+    let thrust_newtons = 0;
+
+    // Iteratively find speed where thrust equals drag
+    // This is a simplified approach, a more accurate one would involve solving for V
+    // For now, we'll iterate to find a reasonable equilibrium.
+    // A more robust solution would involve a numerical solver or closed-form solution if possible.
+    let best_speed_ms = 0;
+    let min_diff = Infinity;
+
+    for (let v = 50; v <= 300; v += 1) { // Iterate through speeds in m/s
+        const cl = (2 * weight_newtons) / (density * v * v * wing_area_m2);
+        const cd = cd_0 + (cl * cl) / (Math.PI * aspect_ratio * oswald_efficiency);
+        const current_drag = 0.5 * density * v * v * wing_area_m2 * cd;
+        const current_thrust = (engine_power_watts * propeller_efficiency) / v;
+
+        const diff = Math.abs(current_thrust - current_drag);
+        if (diff < min_diff) {
+            min_diff = diff;
+            best_speed_ms = v;
+            drag_newtons = current_drag;
+            thrust_newtons = current_thrust;
+        }
+    }
+    speed_ms = best_speed_ms;
+
+    return {
+        speed_ms: speed_ms,
+        speed_kmh: speed_ms * 3.6,
+        drag_newtons: drag_newtons,
+        thrust_newtons: thrust_newtons,
+        v_ms: speed_ms // Adding v_ms for turn calculations
+    };
+}
+
+/**
+ * Calculates the rate of climb (RoC) at a given altitude.
+ * @param {number} altitude_m - Altitude in meters.
+ * @param {number} combatWeight - Total weight of the aircraft in kg.
+ * @param {number} totalEnginePower - Total engine power in HP.
+ * @param {object} propData - Propeller data (efficiency).
+ * @param {object} aero - Aerodynamic data (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod).
+ * @param {object} superchargerData - Supercharger data (rated_altitude_m).
+ * @returns {number} - Rate of climb in m/s.
+ */
+function calculateRateOfClimb(altitude_m, combatWeight, totalEnginePower, propData, aero, superchargerData) {
+    const perf = calculatePerformanceAtAltitude(altitude_m, combatWeight, totalEnginePower, propData, aero, superchargerData);
+    const { standard_gravity_ms2 } = gameData.constants;
+
+    const excess_power = perf.thrust_newtons * perf.speed_ms - perf.drag_newtons * perf.speed_ms;
+    const rate_of_climb_ms = excess_power / (combatWeight * standard_gravity_ms2);
+    return isNaN(rate_of_climb_ms) ? 0 : Math.max(0, rate_of_climb_ms); // Ensure non-negative RoC
+}
+
+
 // --- MAIN CALCULATION FUNCTION ---
 function updateCalculations() {
     const inputs = gatherInputs();
@@ -608,13 +727,13 @@ function applyModifiers(baseStats, inputs) {
 
     let totalEnginePower = 0;
     document.getElementById('engine_power_note').textContent = "";
-    if (inputs.enginePower >= engineData.min_power && inputs.enginePower <= engineData.max_power) {
+    if (inputs.engineType && engineData && inputs.enginePower >= engineData.min_power && inputs.enginePower <= engineData.max_power) {
         totalEnginePower = inputs.enginePower * inputs.numEngines;
         baseUnitCost += (engineData.cost + (inputs.enginePower * 20)) * inputs.numEngines;
         baseMetalCost += engineData.metal_cost * inputs.numEngines;
         totalEmptyWeight += engineData.weight * inputs.numEngines;
         reliabilityModifier *= Math.pow(engineData.reliability, inputs.numEngines);
-    } else {
+    } else if (inputs.engineType && engineData) {
         document.getElementById('engine_power_note').textContent = `Potência para ${engineData.name} deve ser entre ${engineData.min_power} e ${engineData.max_power} HP.`;
     }
 
@@ -651,10 +770,12 @@ function applyModifiers(baseStats, inputs) {
     inputs.armaments.offensive.forEach(arm => {
         if (arm.qty > 0) {
             const armData = gameData.components.armaments[arm.id];
-            armamentCost += armData.cost * arm.qty;
-            armamentWeight += armData.weight * arm.qty;
-            armamentMetalCost += armData.metal_cost * arm.qty;
-            offensiveArmamentTexts.push(`${arm.qty}x ${armData.name}`);
+            if (armData) { // Added check for armData existence
+                armamentCost += armData.cost * arm.qty;
+                armamentWeight += armData.weight * arm.qty;
+                armamentMetalCost += armData.metal_cost * arm.qty;
+                offensiveArmamentTexts.push(`${arm.qty}x ${armData.name}`);
+            }
         }
     });
     baseUnitCost += armamentCost;
@@ -670,10 +791,12 @@ function applyModifiers(baseStats, inputs) {
         inputs.armaments.defensive.forEach(arm => {
             if (arm.qty > 0) {
                 const defArmData = gameData.components.defensive_armaments[arm.id];
-                baseUnitCost += defArmData.cost * arm.qty;
-                totalEmptyWeight += defArmData.weight * arm.qty;
-                baseMetalCost += defArmData.metal_cost * arm.qty;
-                defensiveArmamentTexts.push(`${arm.qty}x ${defArmData.name.replace(' (Defensiva)', '')}`);
+                if (defArmData) { // Added check for defArmData existence
+                    baseUnitCost += defArmData.cost * arm.qty;
+                    totalEmptyWeight += defArmData.weight * arm.qty;
+                    baseMetalCost += defArmData.metal_cost * arm.qty;
+                    defensiveArmamentTexts.push(`${arm.qty}x ${defArmData.name.replace(' (Defensiva)', '')}`);
+                }
             }
         });
     }
@@ -682,10 +805,13 @@ function applyModifiers(baseStats, inputs) {
 }
 
 function calculatePerformance(modifiedStats, inputs) {
-    if (!modifiedStats) return null;
+    if (!modifiedStats || !inputs.aircraftType || !inputs.engineType) return null; // Ensure essential data is present
     const { baseUnitCost, baseMetalCost, totalEmptyWeight, reliabilityModifier, aero, totalEnginePower, armamentWeight, offensiveArmamentTexts, defensiveArmamentTexts, propData, superchargerData } = modifiedStats;
     const typeData = gameData.components.aircraft_types[inputs.aircraftType];
     
+    // Check if typeData, propData, and superchargerData are valid before proceeding
+    if (!typeData || !propData || !superchargerData) return null;
+
     const fuelCapacity = gameData.constants.base_fuel_capacity_liters * (totalEmptyWeight / 2000) * Math.sqrt(inputs.numEngines);
     const fuelWeight = fuelCapacity * gameData.constants.fuel_weight_per_liter;
     const combatWeight = totalEmptyWeight + armamentWeight + (inputs.numCrewmen * gameData.constants.crew_weight_kg) + fuelWeight;
@@ -748,6 +874,25 @@ function calculatePerformance(modifiedStats, inputs) {
 function updateUI(performance) {
     if (!performance) {
         document.getElementById('status').textContent = "Selecione o tipo de aeronave e um motor com potência válida para começar.";
+        // Clear all display values when no performance data is available
+        const displayElements = ['display_name', 'display_type', 'display_doctrine', 'unit_cost', 'total_production_cost',
+                                 'total_metal_cost', 'total_weight', 'total_power', 'speed_max_sl', 'speed_max_alt',
+                                 'rate_of_climb', 'service_ceiling', 'max_range', 'turn_time', 'main_armament',
+                                 'reliability_display', 'country_production_capacity', 'producible_units', 'country_metal_balance'];
+        displayElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (id === 'display_name') el.textContent = 'Sem nome';
+                else if (id === 'display_type' || id === 'display_doctrine') el.textContent = '-';
+                else if (id === 'main_armament') el.textContent = 'Desarmado';
+                else el.textContent = '0'; // For numeric values
+            }
+        });
+        const metalStatusEl = document.getElementById('metal_balance_status');
+        if (metalStatusEl) {
+            metalStatusEl.textContent = '';
+            metalStatusEl.className = 'text-xs font-medium mt-1 text-center';
+        }
         return;
     }
     const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData } = performance;
@@ -874,7 +1019,7 @@ function generateSheet() {
             performanceGraphData: generatePerformanceGraphData(performanceData)
         };
         localStorage.setItem('aircraftSheetData', JSON.stringify(sheetData));
-        localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft));
+        // localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft)); // realWorldAircraft is not defined in this scope
         window.open('ficha.html', '_blank');
     }
 }
@@ -882,16 +1027,34 @@ function generateSheet() {
 function generatePerformanceGraphData(performanceData) {
     const { combatWeight, totalEnginePower, propData, aero, superchargerData, finalServiceCeiling, typeData } = performanceData;
     const data = [];
-    for (let h = 0; h <= 14000; h += 1000) {
-        let cappedAlt = h > finalServiceCeiling ? finalServiceCeiling : h;
+    for (let h = 0; h <= 15000; h += 1000) { // Increased max altitude for graph to ensure ceiling is captured
+        let cappedAlt = h;
+        if (h > finalServiceCeiling && finalServiceCeiling > 0) { // Only cap if a ceiling is actually reached
+            cappedAlt = finalServiceCeiling;
+        }
+        
         const perfPoint = calculatePerformanceAtAltitude(cappedAlt, combatWeight, totalEnginePower, propData, aero, superchargerData);
-        let cappedSpeed = Math.min(perfPoint.speed_kmh * aero.speed_mod, typeData.limits.max_speed);
+        let cappedSpeed = perfPoint.speed_kmh * aero.speed_mod;
+        if (typeData.limits && cappedSpeed > typeData.limits.max_speed) {
+            cappedSpeed = typeData.limits.max_speed;
+        }
+
         data.push({
             altitude: cappedAlt,
-            speed: h > finalServiceCeiling ? 0 : cappedSpeed,
-            roc: h > finalServiceCeiling ? 0 : perfPoint.roc_ms
+            speed: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : cappedSpeed, // Speed is 0 above service ceiling
+            roc: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : perfPoint.roc_ms // RoC is 0 above service ceiling
         });
-        if (h >= finalServiceCeiling) break;
+        if (h >= finalServiceCeiling && finalServiceCeiling > 0) {
+            // If we've reached or passed the ceiling, add one more point at the exact ceiling if not already there
+            if (data[data.length -1].altitude !== finalServiceCeiling) {
+                 data.push({
+                    altitude: finalServiceCeiling,
+                    speed: Math.min(calculatePerformanceAtAltitude(finalServiceCeiling, combatWeight, totalEnginePower, propData, aero, superchargerData).speed_kmh * aero.speed_mod, typeData.limits.max_speed),
+                    roc: 0
+                });
+            }
+            break;
+        }
     }
     return data;
 }
