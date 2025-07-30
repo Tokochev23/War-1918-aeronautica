@@ -1,11 +1,18 @@
-// assets/js/main.js - Enhanced Version with All Improvements
+// assets/js/main.js - Versão Aprimorada com Todas as Melhorias
 
 // --- CONFIGURAÇÃO DA PLANILHA DO GOOGLE SHEETS ---
 const COUNTRY_STATS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27UAlKLizQBXBO/pub?gid=0&single=true&output=csv';
 const METAIS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27UAlKLizQBXBO/pub?gid=1505649898&single=true&output=csv';
 const AERONAVES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5Pw3aRXSTIGMglyNAUNqLtOl7wjX9bMeFXEASkQYC34g_zDyDx3LE8Vm73FUoNn27UAlKLizQBXBO/pub?gid=565684512&single=true&output=csv';
 
-// --- UTILITY FUNCTIONS ---
+// --- FUNÇÕES DE UTILIDADE ---
+/**
+ * Implementa uma função debounce para limitar a frequência de execução de uma função.
+ * Útil para eventos como 'input' em campos de texto, evitando chamadas excessivas.
+ * @param {function} func - A função a ser executada.
+ * @param {number} wait - O tempo de espera em milissegundos antes de executar a função.
+ * @returns {function} - A função debounced.
+ */
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -18,7 +25,10 @@ function debounce(func, wait) {
     };
 }
 
-// --- STATE MANAGEMENT ---
+// --- GERENCIAMENTO DE ESTADO (UNDO/REDO) ---
+/**
+ * Gerencia o histórico de estados da aplicação para funcionalidades de desfazer/refazer.
+ */
 class StateManager {
     constructor(maxHistory = 50) {
         this.history = [];
@@ -27,10 +37,16 @@ class StateManager {
         this.listeners = [];
     }
 
+    /**
+     * Salva o estado atual da aplicação no histórico.
+     * @param {object} state - O objeto de estado a ser salvo.
+     */
     saveState(state) {
+        // Limpa o histórico "à frente" se um novo estado for salvo após um 'undo'
         this.history = this.history.slice(0, this.currentIndex + 1);
-        this.history.push(JSON.parse(JSON.stringify(state)));
+        this.history.push(JSON.parse(JSON.stringify(state))); // Salva uma cópia profunda do estado
         this.currentIndex++;
+        // Limita o tamanho do histórico
         if (this.history.length > this.maxHistory) {
             this.history.shift();
             this.currentIndex--;
@@ -38,9 +54,22 @@ class StateManager {
         this.notifyListeners();
     }
 
+    /**
+     * Verifica se a operação de desfazer é possível.
+     * @returns {boolean} - True se puder desfazer, false caso contrário.
+     */
     canUndo() { return this.currentIndex > 0; }
+
+    /**
+     * Verifica se a operação de refazer é possível.
+     * @returns {boolean} - True se puder refazer, false caso contrário.
+     */
     canRedo() { return this.currentIndex < this.history.length - 1; }
 
+    /**
+     * Desfaz a última alteração de estado.
+     * @returns {object|null} - O estado anterior ou null se não for possível desfazer.
+     */
     undo() {
         if (this.canUndo()) {
             this.currentIndex--;
@@ -50,6 +79,10 @@ class StateManager {
         return null;
     }
 
+    /**
+     * Refaz a última alteração de estado desfeita.
+     * @returns {object|null} - O próximo estado ou null se não for possível refazer.
+     */
     redo() {
         if (this.canRedo()) {
             this.currentIndex++;
@@ -59,18 +92,33 @@ class StateManager {
         return null;
     }
 
+    /**
+     * Obtém o estado atual do histórico.
+     * @returns {object|null} - O estado atual ou null se o histórico estiver vazio.
+     */
     getCurrentState() {
         if (this.currentIndex >= 0 && this.currentIndex < this.history.length) {
-            return JSON.parse(JSON.stringify(this.history[this.currentIndex]));
+            return JSON.parse(JSON.stringify(this.history[this.currentIndex])); // Retorna uma cópia profunda
         }
         return null;
     }
 
+    /**
+     * Adiciona um callback para ser notificado sobre mudanças no estado.
+     * @param {function} callback - A função de callback.
+     */
     addListener(callback) { this.listeners.push(callback); }
+
+    /**
+     * Notifica todos os listeners sobre uma mudança no estado.
+     */
     notifyListeners() { this.listeners.forEach(callback => callback(this)); }
 }
 
-// --- TEMPLATES SYSTEM ---
+// --- SISTEMA DE TEMPLATES ---
+/**
+ * Gerencia os templates de configuração de aeronaves.
+ */
 class TemplateManager {
     constructor() {
         this.templates = {
@@ -97,21 +145,38 @@ class TemplateManager {
         };
     }
 
+    /**
+     * Obtém um template específico pelo seu ID.
+     * @param {string} id - O ID do template.
+     * @returns {object|undefined} - O objeto do template ou undefined se não for encontrado.
+     */
     getTemplate(id) { return this.templates[id]; }
+
+    /**
+     * Obtém todos os templates disponíveis.
+     * @returns {Array<object>} - Um array de todos os templates.
+     */
     getAllTemplates() { return Object.keys(this.templates).map(id => ({ id, ...this.templates[id] })); }
 
+    /**
+     * Aplica um template à interface de usuário e recalcula as estatísticas.
+     * @param {string} templateId - O ID do template a ser aplicado.
+     * @returns {boolean} - True se o template foi aplicado com sucesso, false caso contrário.
+     */
     applyTemplate(templateId) {
         const template = this.getTemplate(templateId);
         if (!template) return false;
-        
-        // Reset all inputs before applying template
+
+        // Resetar todos os inputs para seus valores padrão antes de aplicar o template
         document.querySelectorAll('input[type="number"], select').forEach(el => {
+            // Exclui campos que não devem ser resetados pelos templates (ex: quantidade, doutrinas, slider de qualidade)
             if(!['quantity', 'country_doctrine', 'air_doctrine', 'production_quality_slider'].includes(el.id)) {
                 el.value = el.tagName === 'SELECT' ? el.options[0].value : 0;
             }
         });
         document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
 
+        // Aplica os valores do template aos elementos da UI
         Object.entries(template.config).forEach(([key, value]) => {
             const element = document.getElementById(key);
             if (element) {
@@ -119,29 +184,42 @@ class TemplateManager {
                 else element.value = value;
             }
         });
-        updateCalculations();
+        updateCalculations(); // Recalcula após aplicar o template
         return true;
     }
 }
 
-// --- AUTO-SAVE SYSTEM ---
+// --- SISTEMA DE AUTO-SALVAMENTO ---
+/**
+ * Gerencia o auto-salvamento do estado do formulário no localStorage.
+ */
 class AutoSaveManager {
     constructor(saveInterval = 5000) {
         this.saveInterval = saveInterval;
-        this.lastSaveData = null;
+        this.lastSaveData = null; // Armazena a última string JSON salva para evitar salvamentos redundantes
         this.saveTimer = null;
         this.init();
     }
 
+    /**
+     * Inicializa o auto-salvamento, carregando dados anteriores e iniciando o timer.
+     */
     init() {
         this.loadAutoSave();
         this.startAutoSave();
     }
 
+    /**
+     * Inicia o timer de auto-salvamento.
+     */
     startAutoSave() {
         this.saveTimer = setInterval(() => this.autoSave(), this.saveInterval);
     }
 
+    /**
+     * Obtém os dados atuais do formulário.
+     * @returns {object} - Um objeto contendo os IDs e valores de todos os inputs.
+     */
     getCurrentFormData() {
         const data = {};
         document.querySelectorAll('input, select').forEach(element => {
@@ -153,22 +231,39 @@ class AutoSaveManager {
         return data;
     }
 
+    /**
+     * Salva os dados do formulário no localStorage se houver mudanças.
+     */
     autoSave() {
         const currentData = this.getCurrentFormData();
         const dataString = JSON.stringify(currentData);
         if (dataString !== this.lastSaveData) {
             localStorage.setItem('aircraft_autosave', dataString);
             this.lastSaveData = dataString;
+            // console.log("Dados salvos automaticamente."); // Para depuração
         }
     }
 
+    /**
+     * Carrega os dados salvos automaticamente do localStorage.
+     */
     loadAutoSave() {
         const saved = localStorage.getItem('aircraft_autosave');
         if (saved) {
-            this.restoreFormData(JSON.parse(saved));
+            try {
+                this.restoreFormData(JSON.parse(saved));
+                // console.log("Dados de auto-salvamento carregados."); // Para depuração
+            } catch (e) {
+                console.error("Erro ao parsear dados de auto-salvamento:", e);
+                localStorage.removeItem('aircraft_autosave'); // Limpa dados corrompidos
+            }
         }
     }
 
+    /**
+     * Restaura os dados do formulário a partir de um objeto de dados.
+     * @param {object} data - O objeto de dados a ser restaurado.
+     */
     restoreFormData(data) {
         Object.entries(data).forEach(([id, value]) => {
             const element = document.getElementById(id);
@@ -177,11 +272,14 @@ class AutoSaveManager {
                 else element.value = value;
             }
         });
-        updateCalculations();
+        updateCalculations(); // Recalcula após restaurar os dados
     }
 }
 
-// --- KEYBOARD SHORTCUTS ---
+// --- ATALHOS DE TECLADO ---
+/**
+ * Gerencia os atalhos de teclado para desfazer/refazer e gerar ficha.
+ */
 class KeyboardManager {
     constructor() {
         document.addEventListener('keydown', (e) => {
@@ -190,23 +288,31 @@ class KeyboardManager {
             if (e.ctrlKey && e.key.toLowerCase() === 'g') { e.preventDefault(); generateSheet(); }
         });
     }
+
+    /**
+     * Chama a função de desfazer do StateManager e restaura o formulário.
+     */
     undo() {
         const prevState = stateManager.undo();
         if (prevState) autoSaveManager.restoreFormData(prevState);
     }
+
+    /**
+     * Chama a função de refazer do StateManager e restaura o formulário.
+     */
     redo() {
         const nextState = stateManager.redo();
         if (nextState) autoSaveManager.restoreFormData(nextState);
     }
 }
 
-// --- GLOBAL INSTANCES ---
+// --- INSTÂNCIAS GLOBAIS ---
 let stateManager;
 let templateManager;
 let autoSaveManager;
 let keyboardManager;
 
-// --- GAME DATA (keeping original structure) ---
+// --- DADOS DO JOGO (mantendo estrutura original) ---
 const gameData = {
     countries: {},
     doctrines: {
@@ -398,35 +504,35 @@ const realWorldAircraft = [
     { id: 'other', name: 'Yakovlev Yak-3 (alt)', image_url: 'https://lh3.googleusercontent.com/d/1hcPeyJkleEbn0oqDgKGykVWl47n9NDdF' }
 ];
 
-// --- AERODYNAMIC AND PERFORMANCE CALCULATION FUNCTIONS ---
+// --- FUNÇÕES DE CÁLCULO AERODINÂMICO E DE PERFORMANCE ---
 
 /**
- * Calculates air properties (density, temperature, pressure) at a given altitude.
- * Uses the International Standard Atmosphere (ISA) model.
- * @param {number} altitude_m - Altitude in meters.
- * @returns {object} - Object containing density (kg/m^3), temperature (K), and pressure (Pa).
+ * Calcula as propriedades do ar (densidade, temperatura, pressão) em uma dada altitude.
+ * Utiliza o modelo da Atmosfera Padrão Internacional (ISA).
+ * @param {number} altitude_m - Altitude em metros.
+ * @returns {object} - Objeto contendo densidade (kg/m^3), temperatura (K) e pressão (Pa).
  */
 function getAirPropertiesAtAltitude(h_m) {
-    const h = Math.max(0, h_m); // Altitude cannot be negative
+    const h = Math.max(0, h_m); // Altitude não pode ser negativa
     const T0 = gameData.constants.temp_sea_level_k;
     const P0 = gameData.constants.pressure_sea_level_pa;
     const L = gameData.constants.temp_lapse_rate_k_per_m;
     const R = gameData.constants.gas_constant_air_specific;
     const g = gameData.constants.standard_gravity_ms2;
 
-    const T = Math.max(216.65, T0 - L * h); // Temp in Kelvin, capped at tropopause
+    const T = Math.max(216.65, T0 - L * h); // Temperatura em Kelvin, limitada na tropopausa
     const P = P0 * Math.pow((T / T0), g / (L * R));
     const rho = P / (R * T);
-    
+
     return { temperature: T, pressure: P, density: rho };
 }
 
 /**
- * Calculates engine power at a given altitude, considering supercharger effects.
- * @param {number} basePower - Engine power at sea level (HP).
- * @param {number} h - Altitude in meters.
- * @param {object} superchargerData - Supercharger data.
- * @returns {number} - Adjusted engine power in HP.
+ * Calcula a potência do motor em uma dada altitude, considerando os efeitos do supercharger.
+ * @param {number} basePower - Potência do motor ao nível do mar (HP).
+ * @param {number} h - Altitude em metros.
+ * @param {object} superchargerData - Dados do supercharger.
+ * @returns {number} - Potência do motor ajustada em HP.
  */
 function calculateEnginePowerAtAltitude(basePower, h, superchargerData) {
     if (!superchargerData || superchargerData.name === "Nenhum") {
@@ -446,21 +552,21 @@ function calculateEnginePowerAtAltitude(basePower, h, superchargerData) {
 }
 
 /**
- * Calculates the performance of the aircraft at a given altitude (speed, drag, thrust).
- * @param {number} h - Altitude in meters.
- * @param {number} combatWeight - Total weight of the aircraft in kg.
- * @param {number} totalEnginePower - Total engine power in HP.
- * @param {object} propData - Propeller data (efficiency).
- * @param {object} aero - Aerodynamic data (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
- * @param {object} superchargerData - Supercharger data (rated_altitude_m).
- * @returns {object} - Object containing speed (m/s, km/h), drag (N), and thrust (N).
+ * Calcula a performance da aeronave em uma dada altitude (velocidade, arrasto, empuxo).
+ * @param {number} h - Altitude em metros.
+ * @param {number} combatWeight - Peso total da aeronave em kg.
+ * @param {number} totalEnginePower - Potência total do motor em HP.
+ * @param {object} propData - Dados da hélice (eficiência).
+ * @param {object} aero - Dados aerodinâmicos (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
+ * @param {object} superchargerData - Dados do supercharger (rated_altitude_m).
+ * @returns {object} - Objeto contendo velocidade (m/s, km/h), arrasto (N) e empuxo (N).
  */
 function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower, propData, aero, superchargerData) {
     const airProps = getAirPropertiesAtAltitude(h);
     const powerAtAltitude = calculateEnginePowerAtAltitude(totalEnginePower, h, superchargerData) * aero.power_mod;
-    const powerWatts = powerAtAltitude * 745.7; // Convert HP to Watts
+    const powerWatts = powerAtAltitude * 745.7; // Converte HP para Watts
 
-    let v_ms = 150; // Initial guess for speed in m/s
+    let v_ms = 150; // Chute inicial para velocidade em m/s
     let best_v_ms = v_ms;
     let min_diff = Infinity;
 
@@ -469,17 +575,17 @@ function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower, propD
     for (let current_v = 50; current_v <= 350; current_v += 1) { // Iterar de 50 m/s a 350 m/s (180 km/h a 1260 km/h)
         const CL = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * current_v * current_v * aero.wing_area_m2);
         const CDi = (CL * CL) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-        
+
         // Introduzir penalidade de arrasto dependente da velocidade (efeitos de compressibilidade simplificados)
         // Esta penalidade aumenta quadraticamente com a velocidade, tornando-se mais significativa em velocidades mais altas.
         const speed_kmh_current = current_v * 3.6;
         // O fator 0.005 e o limiar de 400 km/h são ajustáveis para afinar o modelo.
         // Se as velocidades ainda estiverem muito altas, aumente 0.005. Se ficarem muito baixas, diminua.
         const speed_penalty_factor = Math.pow(Math.max(0, speed_kmh_current - 400) / 200, 2); // Penalidade começa a partir de 400 km/h, acentuada após 600 km/h
-        const additional_drag_coefficient = 0.005 * speed_penalty_factor; 
+        const additional_drag_coefficient = 0.005 * speed_penalty_factor;
 
         const CD = aero.cd_0 * aero.drag_mod + CDi + additional_drag_coefficient;
-        
+
         const current_drag_force = 0.5 * airProps.density * current_v * current_v * aero.wing_area_m2 * CD;
         const current_thrust_force = (powerWatts * propData.efficiency) / Math.max(current_v, 1); // Evitar divisão por zero
 
@@ -501,33 +607,33 @@ function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower, propD
 
     const CD_final = aero.cd_0 * aero.drag_mod + CDi_final + additional_drag_coefficient_final;
     const dragForce_final = 0.5 * airProps.density * v_ms * v_ms * aero.wing_area_m2 * CD_final;
-    const thrust_final = (powerWatts * propData.efficiency) / Math.max(v_ms, 30);
+    const thrust_final = (powerWatts * propData.efficiency) / Math.max(v_ms, 30); // Garante que a velocidade mínima para cálculo de empuxo seja razoável
 
     return { speed_kmh: speed_kmh_final, roc_ms: 0, v_ms: v_ms, drag_newtons: dragForce_final, thrust_newtons: thrust_final };
 }
 
 /**
- * Calculates the rate of climb (RoC) at a given altitude.
- * @param {number} h - Altitude in meters.
- * @param {number} combatWeight - Total weight of the aircraft in kg.
- * @param {number} totalEnginePower - Total engine power in HP.
- * @param {object} propData - Propeller data (efficiency).
- * @param {object} aero - Aerodynamic data (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
- * @param {object} superchargerData - Supercharger data (rated_altitude_m).
- * @returns {number} - Rate of climb in m/s.
+ * Calcula a taxa de subida (RoC) em uma dada altitude.
+ * @param {number} h - Altitude em metros.
+ * @param {number} combatWeight - Peso total da aeronave em kg.
+ * @param {number} totalEnginePower - Potência total do motor em HP.
+ * @param {object} propData - Dados da hélice (eficiência).
+ * @param {object} aero - Dados aerodinâmicos (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
+ * @param {object} superchargerData - Dados do supercharger (rated_altitude_m).
+ * @returns {number} - Taxa de subida em m/s.
  */
 function calculateRateOfClimb(h, combatWeight, totalEnginePower, propData, aero, superchargerData) {
     const airProps = getAirPropertiesAtAltitude(h);
     const powerAtAltitude = calculateEnginePowerAtAltitude(totalEnginePower, h, superchargerData) * aero.power_mod;
     const powerWatts = powerAtAltitude * 745.7;
 
-    const climbSpeed_ms = 80; // Optimal climb speed, can be refined
-    
+    const climbSpeed_ms = 80; // Velocidade de subida ótima, pode ser refinada
+
     const thrust = (powerWatts * propData.efficiency) / Math.max(climbSpeed_ms, 1);
-    
+
     const CL_climb = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * climbSpeed_ms * climbSpeed_ms * aero.wing_area_m2);
     const CDi_climb = (CL_climb * CL_climb) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-    
+
     // Aplicar a mesma penalidade de arrasto dependente da velocidade para a subida
     const speed_kmh_climb = climbSpeed_ms * 3.6;
     const speed_penalty_factor_climb = Math.pow(Math.max(0, speed_kmh_climb - 400) / 200, 2);
@@ -538,27 +644,38 @@ function calculateRateOfClimb(h, combatWeight, totalEnginePower, propData, aero,
 
     const excessPower = (thrust * climbSpeed_ms) - (dragForce_climb * climbSpeed_ms);
     const rateOfClimb = excessPower / (combatWeight * gameData.constants.standard_gravity_ms2);
-    
+
     return Math.max(0, rateOfClimb);
 }
 
-
-// --- DATA LOADING FUNCTIONS (Restored) ---
+// --- FUNÇÕES DE CARREGAMENTO DE DADOS ---
+/**
+ * Limpa e converte um valor para float.
+ * Remove caracteres de moeda, pontos de milhar e vírgulas decimais.
+ * @param {string|number} value - O valor a ser limpo e convertido.
+ * @returns {number} - O valor numérico limpo.
+ */
 function cleanAndParseFloat(value) {
     if (typeof value !== 'string') return parseFloat(value) || 0;
     const cleanedValue = value.trim().replace('£', '').replace(/\./g, '').replace(',', '.').replace('%', '');
     return parseFloat(cleanedValue) || 0;
 }
 
+/**
+ * Faz o parse de um CSV a partir de uma URL.
+ * @param {string} url - A URL do arquivo CSV.
+ * @returns {Promise<Array<object>>} - Uma promessa que resolve para um array de objetos, onde cada objeto é uma linha do CSV.
+ */
 async function parseCSV(url) {
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Erro ao carregar CSV de ${url}: ${response.statusText}`);
         const csvText = await response.text();
-        
+
         const lines = csvText.trim().split('\n').filter(line => line.trim() !== '');
         if (lines.length < 1) return [];
 
+        // Função para dividir linhas CSV de forma robusta, lidando com vírgulas dentro de aspas
         const robustSplit = (str) => {
             return str.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => {
                 let value = v.trim();
@@ -568,7 +685,7 @@ async function parseCSV(url) {
         };
 
         const headers = robustSplit(lines[0].trim());
-        
+
         return lines.slice(1).map(line => {
             const values = robustSplit(line.trim());
             let row = {};
@@ -581,10 +698,16 @@ async function parseCSV(url) {
     }
 }
 
+/**
+ * Carrega os dados do jogo (países, capacidades) a partir das planilhas do Google Sheets.
+ */
 async function loadGameDataFromSheets() {
     const countryDropdown = document.getElementById('country_doctrine');
-    countryDropdown.innerHTML = '<option value="loading">Carregando dados...</option>';
-    countryDropdown.disabled = true;
+    if (countryDropdown) {
+        countryDropdown.innerHTML = '<option value="loading">Carregando dados...</option>';
+        countryDropdown.disabled = true;
+    }
+
 
     try {
         const [countryStatsRaw, aeronavesRaw, metaisRaw] = await Promise.all([
@@ -602,7 +725,7 @@ async function loadGameDataFromSheets() {
                     urbanization: cleanAndParseFloat(row['Urbanização']),
                     // CORREÇÃO AQUI: Alterado de 'Tecnologia Aeronautica' para 'Aeronáutica'
                     // conforme o cabeçalho da sua planilha.
-                    tech_level_air: cleanAndParseFloat(row['Aeronáutica']), 
+                    tech_level_air: cleanAndParseFloat(row['Aeronáutica']),
                     production_capacity: 0,
                     metal_balance: 0
                 };
@@ -623,24 +746,32 @@ async function loadGameDataFromSheets() {
                 tempCountries[countryName].metal_balance = cleanAndParseFloat(row['Saldo']);
             }
         });
-        
+
+        // Adiciona um país genérico/padrão para fallback
         tempCountries["Genérico / Padrão"] = { production_capacity: 100000000, metal_balance: 5000000, tech_level_air: 50, tech_civil: 50, urbanization: 50 };
 
         gameData.countries = tempCountries;
         populateCountryDropdown();
-        countryDropdown.disabled = false;
-        
+        if (countryDropdown) countryDropdown.disabled = false;
+
     } catch (error) {
         console.error("Erro fatal ao carregar dados das planilhas:", error);
-        countryDropdown.innerHTML = '<option value="error">Erro ao carregar</option>';
+        if (countryDropdown) {
+            countryDropdown.innerHTML = '<option value="error">Erro ao carregar</option>';
+            countryDropdown.disabled = false;
+        }
+        // Fallback para dados genéricos em caso de falha no carregamento
         gameData.countries = { "Genérico / Padrão": { production_capacity: 100000000, metal_balance: 5000000, tech_level_air: 50, tech_civil: 50, urbanization: 50 } };
         populateCountryDropdown();
-        countryDropdown.disabled = false;
     }
 }
 
+/**
+ * Popula o dropdown de seleção de país com os dados carregados.
+ */
 function populateCountryDropdown() {
     const dropdown = document.getElementById('country_doctrine');
+    if (!dropdown) return;
     dropdown.innerHTML = '';
     const sortedCountries = Object.keys(gameData.countries).sort();
     sortedCountries.forEach(countryName => {
@@ -649,16 +780,22 @@ function populateCountryDropdown() {
         option.textContent = countryName;
         dropdown.appendChild(option);
     });
+    // Seleciona o país genérico/padrão por default se existir
     if (gameData.countries["Genérico / Padrão"]) {
         dropdown.value = "Genérico / Padrão";
     }
 }
 
-// --- UI UPDATE FUNCTION (MOVED UP) ---
+// --- FUNÇÃO DE ATUALIZAÇÃO DA UI ---
+/**
+ * Atualiza os elementos da interface do usuário com os dados de performance calculados.
+ * @param {object|null} performance - Objeto contendo os dados de performance, ou null para limpar a UI.
+ */
 function updateUI(performance) {
     if (!performance) {
-        document.getElementById('status').textContent = "Selecione o tipo de aeronave e um motor com potência válida para começar.";
-        // Clear all display values when no performance data is available
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.textContent = "Selecione o tipo de aeronave e um motor com potência válida para começar.";
+        // Limpa todos os valores de exibição quando não há dados de performance
         const displayElements = ['display_name', 'display_type', 'display_doctrine', 'unit_cost', 'total_production_cost',
                                  'total_metal_cost', 'total_weight', 'total_power', 'speed_max_sl', 'speed_max_alt',
                                  'rate_of_climb', 'service_ceiling', 'max_range', 'turn_time', 'main_armament',
@@ -669,7 +806,7 @@ function updateUI(performance) {
                 if (id === 'display_name') el.textContent = 'Sem nome';
                 else if (id === 'display_type' || id === 'display_doctrine') el.textContent = '-';
                 else if (id === 'main_armament') el.textContent = 'Desarmado';
-                else el.textContent = '0'; // For numeric values
+                else el.textContent = '0'; // Para valores numéricos
             }
         });
         const metalStatusEl = document.getElementById('metal_balance_status');
@@ -680,15 +817,23 @@ function updateUI(performance) {
         return;
     }
     const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData } = performance;
-    
+
     const elements = {
-        'display_name': inputs.aircraftName, 'display_type': typeData.name, 'display_doctrine': gameData.doctrines[inputs.selectedAirDoctrine]?.name || '-',
-        'unit_cost': adjustedUnitCost.toLocaleString('pt-BR'), 'total_production_cost': (adjustedUnitCost * inputs.quantity).toLocaleString('pt-BR'),
-        'total_metal_cost': (baseMetalCost * inputs.quantity).toLocaleString('pt-BR'), 'total_weight': `${Math.round(combatWeight).toLocaleString('pt-BR')} kg`,
-        'total_power': `${Math.round(totalEnginePower).toLocaleString('pt-BR')} hp`, 'speed_max_sl': `${Math.round(finalSpeedKmhSL).toLocaleString('pt-BR')} km/h`,
-        'speed_max_alt': `${Math.round(finalSpeedKmhAlt).toLocaleString('pt-BR')} km/h`, 'rate_of_climb': `${rate_of_climb_ms.toFixed(1)} m/s`,
-        'service_ceiling': `${Math.round(finalServiceCeiling).toLocaleString('pt-BR')} m`, 'max_range': `${Math.round(finalRangeKm).toLocaleString('pt-BR')} km`,
-        'turn_time': `${turn_time_s.toFixed(1)} s`, 'main_armament': offensiveArmamentTexts.length > 0 ? offensiveArmamentTexts.join(', ') : "Desarmado",
+        'display_name': inputs.aircraftName,
+        'display_type': typeData.name,
+        'display_doctrine': gameData.doctrines[inputs.selectedAirDoctrine]?.name || '-',
+        'unit_cost': adjustedUnitCost.toLocaleString('pt-BR'),
+        'total_production_cost': (adjustedUnitCost * inputs.quantity).toLocaleString('pt-BR'),
+        'total_metal_cost': (baseMetalCost * inputs.quantity).toLocaleString('pt-BR'),
+        'total_weight': `${Math.round(combatWeight).toLocaleString('pt-BR')} kg`,
+        'total_power': `${Math.round(totalEnginePower).toLocaleString('pt-BR')} hp`,
+        'speed_max_sl': `${Math.round(finalSpeedKmhSL).toLocaleString('pt-BR')} km/h`,
+        'speed_max_alt': `${Math.round(finalSpeedKmhAlt).toLocaleString('pt-BR')} km/h`,
+        'rate_of_climb': `${rate_of_climb_ms.toFixed(1)} m/s`,
+        'service_ceiling': `${Math.round(finalServiceCeiling).toLocaleString('pt-BR')} m`,
+        'max_range': `${Math.round(finalRangeKm).toLocaleString('pt-BR')} km`,
+        'turn_time': `${turn_time_s.toFixed(1)} s`,
+        'main_armament': offensiveArmamentTexts.length > 0 ? offensiveArmamentTexts.join(', ') : "Desarmado",
         'reliability_display': `${finalReliability.toFixed(1)}%`
     };
     Object.entries(elements).forEach(([id, value]) => {
@@ -697,23 +842,34 @@ function updateUI(performance) {
     });
 
     if (countryData) {
+        // Ajusta a capacidade de produção do país com base no slider de qualidade de produção
+        // Aumenta a capacidade se o slider estiver para "produção" (alto valor)
+        // Diminui a capacidade se o slider estiver para "qualidade" (baixo valor)
         let countryProductionCapacity = countryData.production_capacity * (1 + ((inputs.productionQualitySliderValue / 100) * 0.25) - (((100 - inputs.productionQualitySliderValue) / 100) * 0.10));
         document.getElementById('country_production_capacity').textContent = Math.round(countryProductionCapacity).toLocaleString('pt-BR');
+
         const producibleUnits = adjustedUnitCost > 0 ? Math.floor(countryProductionCapacity / adjustedUnitCost) : 'N/A';
-        document.getElementById('producible_units').textContent = producibleUnits.toLocaleString ? producibleUnits.toLocaleString('pt-BR') : 'N/A';
+        document.getElementById('producible_units').textContent = typeof producibleUnits === 'number' ? producibleUnits.toLocaleString('pt-BR') : producibleUnits;
+
         document.getElementById('country_metal_balance').textContent = Math.round(countryData.metal_balance).toLocaleString('pt-BR');
         const totalMetalCost = baseMetalCost * inputs.quantity;
         const metalStatusEl = document.getElementById('metal_balance_status');
-        metalStatusEl.textContent = totalMetalCost > countryData.metal_balance ? '⚠️ Saldo de metais insuficiente!' : '✅ Saldo de metais suficiente.';
-        metalStatusEl.className = `text-xs font-medium mt-1 text-center ${totalMetalCost > countryData.metal_balance ? 'text-red-600' : 'text-green-600'}`;
+        if (metalStatusEl) {
+            metalStatusEl.textContent = totalMetalCost > countryData.metal_balance ? '⚠️ Saldo de metais insuficiente!' : '✅ Saldo de metais suficiente.';
+            metalStatusEl.className = `text-xs font-medium mt-1 text-center ${totalMetalCost > countryData.metal_balance ? 'text-red-600' : 'text-green-600'}`;
+        }
     }
     updateStatusAndWarnings(performance);
 }
 
-
-// --- MAIN CALCULATION FUNCTION ---
+// --- FUNÇÃO PRINCIPAL DE CÁLCULO ---
+/**
+ * Coleta os inputs do formulário, calcula todas as estatísticas da aeronave
+ * e atualiza a interface do usuário.
+ * @returns {object|null} - Objeto com todos os dados de performance calculados, ou null se houver validação falha.
+ */
 function updateCalculations() {
-    // --- GATHER INPUTS ---
+    // --- COLETAR INPUTS ---
     const inputs = {
         aircraftName: document.getElementById('aircraft_name')?.value || 'Aeronave Sem Nome',
         quantity: parseInt(document.getElementById('quantity')?.value) || 1,
@@ -734,7 +890,7 @@ function updateCalculations() {
         productionQualitySliderValue: parseInt(document.getElementById('production_quality_slider')?.value) || 50,
         defensiveTurretType: document.getElementById('defensive_turret_type')?.value,
         checkboxes: {
-            // Updated to match the HTML section IDs for direct checkbox containers
+            // Mapeia os IDs dos checkboxes marcados por seção
             wing_features: Array.from(document.querySelectorAll('#wing_features_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
             engine_enhancements: Array.from(document.querySelectorAll('#engine_enhancements_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
             protection: Array.from(document.querySelectorAll('#protection_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
@@ -744,13 +900,14 @@ function updateCalculations() {
             maintainability_features: Array.from(document.querySelectorAll('#maintainability_features_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
         },
         armaments: {
-            // Updated to match the HTML section IDs for direct armament containers
+            // Mapeia os armamentos ofensivos e suas quantidades
             offensive: Array.from(document.querySelectorAll('#offensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 })),
+            // Mapeia os armamentos defensivos e suas quantidades
             defensive: Array.from(document.querySelectorAll('#defensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 }))
         }
     };
-    
-    // --- VALIDATION & DATA SETUP ---
+
+    // --- VALIDAÇÃO E CONFIGURAÇÃO DE DADOS ---
     const typeData = gameData.components.aircraft_types[inputs.aircraftType];
     const engineData = gameData.components.engines[inputs.engineType];
     const structureData = gameData.components.structure_materials[inputs.structureType];
@@ -762,7 +919,7 @@ function updateCalculations() {
     const superchargerData = gameData.components.superchargers[inputs.supercharger];
     const doctrineData = gameData.doctrines[inputs.selectedAirDoctrine];
 
-    // Update descriptions on main page
+    // Atualiza as descrições na página principal
     document.getElementById('aircraft_type_note').textContent = typeData ? typeData.description : '';
     document.getElementById('structure_note').textContent = structureData ? structureData.description : '';
     document.getElementById('wing_type_note').textContent = wingData ? wingData.description : '';
@@ -774,18 +931,18 @@ function updateCalculations() {
     document.getElementById('supercharger_note').textContent = superchargerData ? superchargerData.description : '';
     document.getElementById('doctrine_note').textContent = doctrineData ? doctrineData.description : "Selecione uma doutrina para ver seus efeitos.";
 
-    // Initial validation for core components
+    // Validação inicial para componentes essenciais
     if (!typeData || !engineData || inputs.enginePower <= 0 || !propData || !superchargerData) {
-        updateUI(null); // Clear UI if essential data is missing
+        updateUI(null); // Limpa a UI se dados essenciais estiverem faltando
         updateProgress();
         return null;
     }
-    
-    // --- CALCULATE BASE STATS & MODIFIERS ---
+
+    // --- CALCULAR ESTATÍSTICAS BASE E MODIFICADORES ---
     let baseUnitCost = typeData.cost;
     let baseMetalCost = typeData.metal_cost;
     let totalEmptyWeight = typeData.weight;
-    let reliabilityModifier = typeData.reliability_base; // Start with base reliability from aircraft type
+    let reliabilityModifier = typeData.reliability_base; // Começa com a confiabilidade base do tipo de aeronave
     let aero = {
         wing_area_m2: typeData.wing_area_m2,
         cl_max: typeData.cl_max,
@@ -796,7 +953,7 @@ function updateCalculations() {
         drag_mod: 1.0, power_mod: 1.0, range_mod: 1.0, ceiling_mod: 1.0, speed_mod: 1.0
     };
 
-    // Doctrine
+    // Doutrina
     if (doctrineData) {
         baseUnitCost *= (doctrineData.cost_modifier || 1.0);
         reliabilityModifier *= (doctrineData.reliability_modifier || 1.0);
@@ -809,7 +966,7 @@ function updateCalculations() {
         }
     }
 
-    // Structure, Wings, Landing Gear
+    // Estrutura, Asas, Trem de Pouso
     baseUnitCost *= structureData.cost_mod;
     totalEmptyWeight *= structureData.weight_mod;
     reliabilityModifier *= structureData.reliability_mod;
@@ -829,12 +986,14 @@ function updateCalculations() {
     aero.drag_mod *= landingGearData.drag_mod;
     reliabilityModifier *= landingGearData.reliability_mod;
 
-    // Engines & Propulsion
+    // Motores e Propulsão
     let totalEnginePower = 0;
-    document.getElementById('engine_power_note').textContent = "";
+    const enginePowerNote = document.getElementById('engine_power_note');
+    if (enginePowerNote) enginePowerNote.textContent = "";
+
     if (inputs.enginePower < engineData.min_power || inputs.enginePower > engineData.max_power) {
-        document.getElementById('engine_power_note').textContent = `Potência para ${engineData.name} deve ser entre ${engineData.min_power} e ${engineData.max_power} HP.`;
-        updateUI(null); // Clear UI if engine power is invalid
+        if (enginePowerNote) enginePowerNote.textContent = `Potência para ${engineData.name} deve ser entre ${engineData.min_power} e ${engineData.max_power} HP.`;
+        updateUI(null); // Limpa a UI se a potência do motor for inválida
         updateProgress();
         return null;
     } else {
@@ -844,13 +1003,13 @@ function updateCalculations() {
         totalEmptyWeight += engineData.weight * inputs.numEngines;
         reliabilityModifier *= Math.pow(engineData.reliability, inputs.numEngines);
     }
-    
+
     baseUnitCost += propData.cost * inputs.numEngines;
     totalEmptyWeight += propData.weight * inputs.numEngines;
     baseMetalCost += propData.metal_cost * inputs.numEngines;
     reliabilityModifier *= Math.pow(propData.reliability_mod, inputs.numEngines);
 
-    // Other systems per engine
+    // Outros sistemas por motor
     [coolingData, fuelFeedData, superchargerData].forEach(data => {
         baseUnitCost += (data.cost || 0) * inputs.numEngines;
         totalEmptyWeight += (data.weight || 0) * inputs.numEngines;
@@ -859,11 +1018,11 @@ function updateCalculations() {
         aero.power_mod *= data.performance_mod || data.power_mod || 1.0;
     });
 
-    // Process all checkbox-based components
+    // Processa todos os componentes baseados em checkboxes
     for (const categoryKey in inputs.checkboxes) {
         inputs.checkboxes[categoryKey].forEach(id => {
-            // Use findItemAcrossCategories to correctly get data from gameData.components
-            const item = findItemAcrossCategories(id); 
+            // Usa findItemAcrossCategories para obter corretamente os dados de gameData.components
+            const item = findItemAcrossCategories(id);
             if(item) {
                 baseUnitCost += item.cost || 0;
                 totalEmptyWeight += item.weight || 0;
@@ -879,7 +1038,7 @@ function updateCalculations() {
         });
     }
 
-    // Armaments
+    // Armamentos
     let armamentWeight = 0, armamentCost = 0, armamentMetalCost = 0;
     let offensiveArmamentTexts = [];
     inputs.armaments.offensive.forEach(arm => {
@@ -896,7 +1055,7 @@ function updateCalculations() {
     baseUnitCost += armamentCost;
     baseMetalCost += armamentMetalCost;
 
-    // Defensive Armaments
+    // Armamentos Defensivos
     let defensiveArmamentTexts = [];
     const turretData = gameData.components.defensive_armaments[inputs.defensiveTurretType];
     if (turretData && inputs.defensiveTurretType !== "none_turret") {
@@ -917,30 +1076,23 @@ function updateCalculations() {
         });
     }
 
-    // --- FINAL WEIGHT AND COST ---
+    // --- PESO FINAL E CUSTO ---
     const fuelCapacity = gameData.constants.base_fuel_capacity_liters * (totalEmptyWeight / 2000) * Math.sqrt(inputs.numEngines);
     const fuelWeight = fuelCapacity * gameData.constants.fuel_weight_per_liter;
     const combatWeight = totalEmptyWeight + armamentWeight + (inputs.numCrewmen * gameData.constants.crew_weight_kg) + fuelWeight;
 
-    // Quality/Production Slider
+    // Slider de Qualidade/Produção
     const qualityBias = (100 - inputs.productionQualitySliderValue) / 100;
     const productionBias = inputs.productionQualitySliderValue / 100;
 
-    // DEBUG: Log slider values and biases
-    console.log(`Slider Value: ${inputs.productionQualitySliderValue}`);
-    console.log(`Quality Bias: ${qualityBias.toFixed(2)}`);
-    console.log(`Production Bias: ${productionBias.toFixed(2)}`);
-
-    // CORREÇÃO AQUI: Invertendo a lógica para o custo
     // Custo aumenta com a qualidade (qualityBias) e diminui com a produção (productionBias)
     baseUnitCost *= (1 + (qualityBias * 0.20) - (productionBias * 0.20));
 
-    // CORREÇÃO AQUI: Aplicar o bônus de confiabilidade de 20% UMA VEZ no final
+    // Aplica o bônus de confiabilidade de 20% UMA VEZ no final
     reliabilityModifier *= 1.20; // Aumenta a confiabilidade total em 20%
     reliabilityModifier *= (1 + (qualityBias * 0.15) - (productionBias * 0.15)); // Aplica o bias do slider
 
-    
-    // Country cost reduction
+    // Redução de custo do país
     const countryData = gameData.countries[inputs.selectedCountryName];
     let countryCostReduction = 0;
     if (countryData) {
@@ -948,37 +1100,37 @@ function updateCalculations() {
         const urbanizationReduction = (countryData.urbanization / gameData.constants.max_urbanization_level) * gameData.constants.urbanization_cost_reduction_factor;
         countryCostReduction = Math.min(0.75, civilTechReduction + urbanizationReduction);
     }
-    baseUnitCost *= (1 - countryCostReduction);
-    
-    // --- PERFORMANCE CALCULATIONS ---
+    const finalUnitCost = baseUnitCost * (1 - countryCostReduction); // <-- CORREÇÃO AQUI: Define finalUnitCost
+
+    // --- CÁLCULOS DE PERFORMANCE ---
     const perfSL = calculatePerformanceAtAltitude(0, combatWeight, totalEnginePower, propData, aero, superchargerData);
     const perfAlt = calculatePerformanceAtAltitude(superchargerData.rated_altitude_m, combatWeight, totalEnginePower, propData, aero, superchargerData);
-    
-    // Raw calculated values
+
+    // Valores calculados brutos
     let rawSpeedKmhSL = perfSL.speed_kmh * aero.speed_mod;
     let rawSpeedKmhAlt = perfAlt.speed_kmh * aero.speed_mod;
     const bsfc_kg_per_watt_s = (gameData.components.engines[inputs.engineType].bsfc_g_per_kwh / 1000) / 3.6e6;
     const optimal_CL = Math.sqrt(aero.cd_0 * Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-    const optimal_CD = aero.cd_0 * 2; // This might be simplified, usually CD_induced = CD_0 for max L/D
-    const L_D_ratio = optimal_CD > 0 ? optimal_CL / optimal_CD : 10; // Avoid division by zero
+    const optimal_CD = aero.cd_0 * 2; // Isso pode ser simplificado, geralmente CD_induced = CD_0 para max L/D
+    const L_D_ratio = optimal_CD > 0 ? optimal_CL / optimal_CD : 10; // Evita divisão por zero
     const range_m = (propData.efficiency / (gameData.constants.standard_gravity_ms2 * bsfc_kg_per_watt_s)) * L_D_ratio * Math.log(combatWeight / (combatWeight - fuelWeight));
     let rawRangeKm = (range_m / 1000) * aero.range_mod;
-    
-    const rate_of_climb_ms = calculateRateOfClimb(0, combatWeight, totalEnginePower, propData, aero, superchargerData); // Calculate RoC at sea level
 
-    // --- ENFORCE PERFORMANCE LIMITS (CAPPING) ---
+    const rate_of_climb_ms = calculateRateOfClimb(0, combatWeight, totalEnginePower, propData, aero, superchargerData); // Calcula RoC ao nível do mar
+
+    // --- APLICAR LIMITES DE PERFORMANCE (CAPPING) ---
     let finalSpeedKmhSL = rawSpeedKmhSL;
     let finalSpeedKmhAlt = rawSpeedKmhAlt;
-    // Apply the balance factor to the range
+    // Aplica o fator de balanço ao alcance
     let finalRangeKm = rawRangeKm / gameData.constants.range_balance_factor;
 
     if (typeData.limits) {
         finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, typeData.limits.max_speed);
-        finalSpeedKmhSL = Math.min(finalSpeedKmhSL, typeData.limits.max_speed); // Also cap SL speed
+        finalSpeedKmhSL = Math.min(finalSpeedKmhSL, typeData.limits.max_speed); // Também limita a velocidade SL
         finalRangeKm = Math.min(finalRangeKm, typeData.limits.max_range);
     }
 
-    // Service Ceiling
+    // Teto de Serviço
     let serviceCeiling = 0;
     for (let h = 0; h <= 15000; h += 250) {
         const currentROC = calculateRateOfClimb(h, combatWeight, totalEnginePower, propData, aero, superchargerData);
@@ -986,61 +1138,83 @@ function updateCalculations() {
             serviceCeiling = h;
             break;
         }
-        if (h === 15000) serviceCeiling = h;
+        if (h === 15000) serviceCeiling = h; // Se atingir o limite, define o teto como o limite
     }
     let finalServiceCeiling = serviceCeiling * aero.ceiling_mod;
+    // Limita o teto de serviço com base nos sistemas de cabine
     if (!inputs.checkboxes.cockpit_comfort.includes('pressurized_cabin') && finalServiceCeiling > 10000) finalServiceCeiling = 10000;
     if (!inputs.checkboxes.cockpit_comfort.includes('oxygen_system') && finalServiceCeiling > 5000) finalServiceCeiling = 5000;
 
-    // Maneuverability
+    // Manobrabilidade
     const wingLoading = combatWeight / aero.wing_area_m2;
-    const v_turn = perfAlt.v_ms * 0.8; // Use speed at optimal altitude for turn calculations
+    const v_turn = perfAlt.v_ms * 0.8; // Usa velocidade na altitude ótima para cálculos de curva
     const max_load_factor = Math.min(gameData.constants.turn_g_force, (0.5 * getAirPropertiesAtAltitude(2000).density * v_turn * v_turn * aero.cl_max) / wingLoading);
     const turn_radius = (v_turn * v_turn) / (gameData.constants.standard_gravity_ms2 * Math.sqrt(Math.max(0.01, max_load_factor * max_load_factor - 1)));
     let turn_time_s = (2 * Math.PI * turn_radius) / v_turn;
     turn_time_s /= aero.maneuverability_mod;
-    turn_time_s = Math.max(12, Math.min(60, turn_time_s));
+    turn_time_s = Math.max(12, Math.min(60, turn_time_s)); // Limita o tempo de curva entre 12 e 60 segundos
 
     const finalReliability = Math.max(5, Math.min(100, 100 * reliabilityModifier));
 
-    // --- UI UPDATE ---
-    updateUI({ inputs, adjustedUnitCost: finalUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData });
-    
-    if (performance) { // This `performance` variable is not defined here. It should be the returned object.
-        stateManager.saveState(inputs);
-    }
-    
-    return {
+    // --- ATUALIZAÇÃO DA UI ---
+    const calculatedPerformance = {
         inputs, adjustedUnitCost: finalUnitCost, baseMetalCost, combatWeight, totalEnginePower,
         finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s,
         finalReliability, offensiveArmamentTexts, defensiveArmamentTexts,
         countryData, wingLoading, typeData, rawSpeedKmhAlt, rawRangeKm, superchargerData, aero, propData
     };
+    updateUI(calculatedPerformance);
+
+    // Salva o estado para undo/redo
+    stateManager.saveState(inputs); // Salva os inputs brutos para restauração precisa
+
+    return calculatedPerformance;
 }
 
 const debouncedUpdateCalculations = debounce(updateCalculations, 250);
 
-// --- UI & INITIALIZATION ---
+// --- UI E INICIALIZAÇÃO ---
 let currentStep = 1;
+/**
+ * Alterna a visibilidade de uma seção (passo) do formulário.
+ * @param {number} step - O número do passo a ser alternado.
+ */
 function toggleStep(step) {
     const content = document.getElementById(`step_${step}_content`);
     const icon = document.getElementById(`step_${step}_icon`);
     const card = document.getElementById(`step_${step}`);
+    if (!content || !icon || !card) return; // Garante que os elementos existem
+
     if (content.classList.contains('hidden')) {
+        // Esconde todos os outros passos
         for (let i = 1; i <= 5; i++) {
-            if (i !== step) {
-                document.getElementById(`step_${i}_content`).classList.add('hidden');
-                document.getElementById(`step_${i}_icon`).classList.remove('rotate-180');
-                document.getElementById(`step_${i}`).classList.remove('active');
+            const otherContent = document.getElementById(`step_${i}_content`);
+            const otherIcon = document.getElementById(`step_${i}_icon`);
+            const otherCard = document.getElementById(`step_${i}`);
+            if (otherContent && otherIcon && otherCard) {
+                if (i !== step) {
+                    otherContent.classList.add('hidden');
+                    otherIcon.classList.remove('rotate-180');
+                    otherCard.classList.remove('active');
+                }
             }
         }
-        content.classList.remove('hidden'); icon.classList.add('rotate-180'); card.classList.add('active');
+        // Mostra o passo selecionado
+        content.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+        card.classList.add('active');
         currentStep = step;
     } else {
-        content.classList.add('hidden'); icon.classList.remove('rotate-180'); card.classList.remove('active');
+        // Esconde o passo se já estiver aberto
+        content.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+        card.classList.remove('active');
     }
 }
 
+/**
+ * Atualiza a barra de progresso com base nos campos obrigatórios preenchidos.
+ */
 function updateProgress() {
     const requiredFields = ['aircraft_name', 'country_doctrine', 'air_doctrine', 'aircraft_type', 'engine_type'];
     let completedFields = 0;
@@ -1048,9 +1222,15 @@ function updateProgress() {
         const field = document.getElementById(id);
         if (field && field.value && field.value !== '' && field.value !== 'loading') completedFields++;
     });
-    document.getElementById('progress_bar').style.width = `${(completedFields / requiredFields.length) * 100}%`;
+    const progressBar = document.getElementById('progress_bar');
+    if (progressBar) {
+        progressBar.style.width = `${(completedFields / requiredFields.length) * 100}%`;
+    }
 }
 
+/**
+ * Gera a ficha da aeronave e a abre em uma nova aba.
+ */
 function generateSheet() {
     const performanceData = updateCalculations();
     if (performanceData) {
@@ -1060,38 +1240,50 @@ function generateSheet() {
     } else {
         console.error("Não foi possível gerar a ficha: dados da aeronave são inválidos.");
         const statusContainer = document.getElementById('status-container');
-        statusContainer.innerHTML = ''; // Clear previous messages
-        const errorEl = document.createElement('div');
-        errorEl.className = 'p-3 rounded-lg text-center text-sm font-medium status-error text-red-600'; // Added Tailwind classes
-        errorEl.textContent = '🔥 Erro: Preencha os campos obrigatórios para gerar a ficha.';
-        statusContainer.appendChild(errorEl);
+        if (statusContainer) {
+            statusContainer.innerHTML = ''; // Limpa mensagens anteriores
+            const errorEl = document.createElement('div');
+            errorEl.className = 'p-3 rounded-lg text-center text-sm font-medium status-error text-red-600'; // Classes Tailwind
+            errorEl.textContent = '🔥 Erro: Preencha os campos obrigatórios para gerar a ficha.';
+            statusContainer.appendChild(errorEl);
+        }
     }
 }
 
+/**
+ * Gera dados para o gráfico de performance (velocidade e taxa de subida vs. altitude).
+ * @param {object} performanceData - Os dados de performance calculados da aeronave.
+ * @returns {Array<object>} - Um array de objetos com altitude, velocidade e RoC.
+ */
 function generatePerformanceGraphData(performanceData) {
     const { combatWeight, totalEnginePower, propData, aero, superchargerData, finalServiceCeiling, typeData } = performanceData;
     const data = [];
-    for (let h = 0; h <= 15000; h += 1000) { // Increased max altitude for graph to ensure ceiling is captured
-        let cappedAlt = h;
-        if (h > finalServiceCeiling && finalServiceCeiling > 0) { // Only cap if a ceiling is actually reached
-            cappedAlt = finalServiceCeiling;
+    // Itera por altitudes em incrementos de 1000m até 15000m ou o teto de serviço
+    for (let h = 0; h <= 15000; h += 1000) {
+        let currentAlt = h;
+        // Se a altitude atual for maior que o teto de serviço, usa o teto de serviço para o cálculo
+        if (h > finalServiceCeiling && finalServiceCeiling > 0) {
+            currentAlt = finalServiceCeiling;
         }
-        
-        const perfPoint = calculatePerformanceAtAltitude(cappedAlt, combatWeight, totalEnginePower, propData, aero, superchargerData);
+
+        const perfPoint = calculatePerformanceAtAltitude(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData);
         let cappedSpeed = perfPoint.speed_kmh * aero.speed_mod;
+        // Limita a velocidade à máxima permitida para o tipo de aeronave
         if (typeData.limits && cappedSpeed > typeData.limits.max_speed) {
             cappedSpeed = typeData.limits.max_speed;
         }
 
         data.push({
-            altitude: cappedAlt,
-            speed: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : cappedSpeed, // Speed is 0 above service ceiling
-            roc: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : perfPoint.roc_ms // RoC is 0 above service ceiling
+            altitude: currentAlt,
+            // Velocidade e RoC são 0 acima do teto de serviço
+            speed: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : cappedSpeed,
+            roc: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : calculateRateOfClimb(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData)
         });
+
+        // Se o teto de serviço foi atingido ou ultrapassado, adiciona um ponto extra no teto exato e para
         if (h >= finalServiceCeiling && finalServiceCeiling > 0) {
-            // If we've reached or passed the ceiling, add one more point at the exact ceiling if not already there
             if (data[data.length -1].altitude !== finalServiceCeiling) {
-                 data.push({
+                data.push({
                     altitude: finalServiceCeiling,
                     speed: Math.min(calculatePerformanceAtAltitude(finalServiceCeiling, combatWeight, totalEnginePower, propData, aero, superchargerData).speed_kmh * aero.speed_mod, typeData.limits.max_speed),
                     roc: 0
@@ -1104,10 +1296,10 @@ function generatePerformanceGraphData(performanceData) {
 }
 
 /**
- * Helper function to find a component item across different categories in gameData.components.
- * This is useful because checkbox IDs might not directly map to their top-level category keys.
- * @param {string} id - The ID of the component to find.
- * @returns {object|null} - The component object if found, otherwise null.
+ * Função auxiliar para encontrar um item de componente em diferentes categorias em gameData.components.
+ * Isso é útil porque os IDs dos checkboxes podem não mapear diretamente para suas chaves de categoria de nível superior.
+ * @param {string} id - O ID do componente a ser encontrado.
+ * @returns {object|null} - O objeto do componente se encontrado, caso contrário null.
  */
 function findItemAcrossCategories(id) {
     for (const categoryKey in gameData.components) {
@@ -1116,15 +1308,22 @@ function findItemAcrossCategories(id) {
         }
     }
     return null;
-    }
+}
 
+/**
+ * Atualiza a área de status e exibe avisos ou mensagens de sucesso.
+ * @param {object} performance - O objeto de performance da aeronave.
+ */
 function updateStatusAndWarnings(performance) {
     const statusContainer = document.getElementById('status-container');
-    statusContainer.innerHTML = '';
+    if (!statusContainer) return;
+
+    statusContainer.innerHTML = ''; // Limpa mensagens anteriores
     let warnings = [];
     const { totalEnginePower, combatWeight, wingLoading, finalReliability, typeData, rawSpeedKmhAlt, rawRangeKm, finalSpeedKmhAlt, finalRangeKm } = performance;
     const powerToWeightRatio = (totalEnginePower * 745.7) / (combatWeight * gameData.constants.standard_gravity_ms2);
 
+    // Adiciona avisos com base nas estatísticas
     if (powerToWeightRatio < 0.25 && typeData.name.includes('Caça')) warnings.push({ type: 'error', text: '🔥 Relação peso/potência crítica! Aeronave com performance muito baixa.' });
     else if (powerToWeightRatio < 0.35 && typeData.name.includes('Caça')) warnings.push({ type: 'warning', text: '⚠️ Relação peso/potência baixa. Aumente a potência ou reduza o peso.' });
     if (wingLoading > 200 && typeData.name.includes('Caça')) warnings.push({ type: 'warning', text: '⚠️ Carga alar alta, prejudicando a manobrabilidade em baixa velocidade.' });
@@ -1135,79 +1334,124 @@ function updateStatusAndWarnings(performance) {
         if (rawSpeedKmhAlt > typeData.limits.max_speed) warnings.push({ type: 'warning', text: `⚠️ Velocidade acima do esperado para um ${typeData.name}. (Calculado: ${Math.round(rawSpeedKmhAlt)} km/h, Limitado a: ${typeData.limits.max_speed} km/h)` });
         if (rawRangeKm / gameData.constants.range_balance_factor > typeData.limits.max_range) warnings.push({ type: 'warning', text: `⚠️ Alcance acima do esperado para um ${typeData.name}. (Calculado: ${Math.round(rawRangeKm / gameData.constants.range_balance_factor)} km, Limitado a: ${typeData.limits.max_range} km)` });
     }
+    // Mensagem de sucesso se não houver avisos
     if (warnings.length === 0) {
         warnings.push({ type: 'ok', text: '✅ Design pronto para os céus! Clique no ícone de relatório para gerar a ficha.' });
     }
+    // Exibe os avisos/mensagens
     warnings.forEach(warning => {
         const statusEl = document.createElement('div');
-        statusEl.className = `p-3 rounded-lg text-center text-sm font-medium status-${warning.type}`; // Added Tailwind classes
+        statusEl.className = `p-3 rounded-lg text-center text-sm font-medium status-${warning.type}`; // Classes Tailwind
         statusEl.textContent = warning.text;
         statusContainer.appendChild(statusEl);
     });
 }
 
-
+/**
+ * Cria e adiciona o menu de templates flutuante à página.
+ */
 function createTemplateMenu() {
     const menuContainer = document.createElement('div');
     menuContainer.className = 'fixed top-4 right-4 z-40';
-    menuContainer.innerHTML = `<button id="template-menu-btn" class="bg-purple-500 text-white p-3 rounded-full shadow-lg hover:bg-purple-600 transition-colors"><i class="fas fa-magic"></i></button><div id="template-menu" class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg min-w-48 hidden"><div class="p-3 border-b border-gray-200"><h3 class="font-semibold text-gray-800">🎯 Templates</h3></div><div class="p-2">${templateManager.getAllTemplates().map(t => `<button onclick="templateManager.applyTemplate('${t.id}')" class="w-full text-left p-2 hover:bg-gray-100 rounded text-sm"><div class="font-medium">${t.name}</div><div class="text-xs text-gray-600">${t.description}</div></button>`).join('')}</div></div>`;
+    menuContainer.innerHTML = `
+        <button id="template-menu-btn" class="bg-purple-500 text-white p-3 rounded-full shadow-lg hover:bg-purple-600 transition-colors">
+            <i class="fas fa-magic"></i>
+        </button>
+        <div id="template-menu" class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg min-w-48 hidden">
+            <div class="p-3 border-b border-gray-200">
+                <h3 class="font-semibold text-gray-800">🎯 Templates</h3>
+            </div>
+            <div class="p-2">
+                ${templateManager.getAllTemplates().map(t => `
+                    <button onclick="templateManager.applyTemplate('${t.id}')" class="w-full text-left p-2 hover:bg-gray-100 rounded text-sm">
+                        <div class="font-medium">${t.name}</div>
+                        <div class="text-xs text-gray-600">${t.description}</div>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
     document.body.appendChild(menuContainer);
     const btn = document.getElementById('template-menu-btn');
     const menu = document.getElementById('template-menu');
-    btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); });
-    document.addEventListener('click', (e) => { if (!menuContainer.contains(e.target)) menu.classList.add('hidden'); });
+    if (btn && menu) {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); });
+        document.addEventListener('click', (e) => { if (!menuContainer.contains(e.target)) menu.classList.add('hidden'); });
+    }
 }
 
+/**
+ * Cria e adiciona os botões de desfazer/refazer flutuantes à página.
+ */
 function createUndoRedoButtons() {
     const container = document.createElement('div');
     container.className = 'fixed bottom-4 left-4 flex flex-col gap-2 z-40';
-    container.innerHTML = `<button id="undo-btn" class="bg-gray-700 text-white w-10 h-10 rounded-full shadow-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled><i class="fas fa-undo"></i></button><button id="redo-btn" class="bg-gray-700 text-white w-10 h-10 rounded-full shadow-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled><i class="fas fa-redo"></i></button>`;
+    container.innerHTML = `
+        <button id="undo-btn" class="bg-gray-700 text-white w-10 h-10 rounded-full shadow-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fas fa-undo"></i>
+        </button>
+        <button id="redo-btn" class="bg-gray-700 text-white w-10 h-10 rounded-full shadow-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fas fa-redo"></i>
+        </button>
+    `;
     document.body.appendChild(container);
     const undoBtn = document.getElementById('undo-btn');
     const redoBtn = document.getElementById('redo-btn');
-    undoBtn.onclick = () => keyboardManager.undo();
-    redoBtn.onclick = () => keyboardManager.redo();
-    stateManager.addListener((manager) => {
-        undoBtn.disabled = !manager.canUndo();
-        redoBtn.disabled = !manager.canRedo();
-    });
+    if (undoBtn && redoBtn) {
+        undoBtn.onclick = () => keyboardManager.undo();
+        redoBtn.onclick = () => keyboardManager.redo();
+        stateManager.addListener((manager) => {
+            undoBtn.disabled = !manager.canUndo();
+            redoBtn.disabled = !manager.canRedo();
+        });
+    }
 }
 
+// --- INICIALIZAÇÃO DA APLICAÇÃO ---
 window.onload = function() {
+    // Inicializa os gerenciadores de estado, templates, auto-salvamento e teclado
     stateManager = new StateManager();
     templateManager = new TemplateManager();
-    autoSaveManager = new AutoSaveManager();
+    autoSaveManager = new AutoSaveManager(); // AutoSaveManager carrega e restaura dados em sua inicialização
     keyboardManager = new KeyboardManager();
-    
+
+    // Carrega os dados das planilhas e então inicializa a UI
     loadGameDataFromSheets().then(() => {
-        // Initialize UI after data is loaded and restored from autosave
-        toggleStep(1); // Open the first step by default
-        updateCalculations(); // Perform initial calculations
-        stateManager.saveState(autoSaveManager.getCurrentFormData()); // Save initial state for undo/redo
+        // Abre o primeiro passo do formulário por padrão
+        toggleStep(1);
+        // Realiza os cálculos iniciais após os dados serem carregados e restaurados do autosave
+        updateCalculations();
+        // Salva o estado inicial para que o undo/redo funcione desde o começo
+        stateManager.saveState(autoSaveManager.getCurrentFormData());
     });
 
+    // Cria os botões de templates e undo/redo
     createTemplateMenu();
     createUndoRedoButtons();
 
-    // Attach event listeners to all relevant input fields and selects
+    // Anexa event listeners a todos os campos de input e selects relevantes
     document.querySelectorAll('input, select').forEach(element => {
-        if (element.id !== 'aircraft_name' && element.id !== 'quantity') { // Exclude name and quantity from immediate debounced update
+        // Exclui 'aircraft_name' e 'quantity' do debounce para uma atualização mais imediata
+        if (element.id !== 'aircraft_name' && element.id !== 'quantity') {
             element.addEventListener('input', debouncedUpdateCalculations);
-            element.addEventListener('change', debouncedUpdateCalculations); // For selects
+            element.addEventListener('change', debouncedUpdateCalculations); // Para selects
         } else {
-            element.addEventListener('input', updateCalculations); // For name and quantity, update immediately
+            // Para 'aircraft_name' e 'quantity', atualiza imediatamente (sem debounce)
+            element.addEventListener('input', updateCalculations);
             element.addEventListener('change', updateCalculations);
         }
     });
 
-    // Event listener for the generate sheet icon
+    // Event listener para o ícone de gerar ficha
     const generateSheetIcon = document.getElementById('generate-sheet-icon');
     if (generateSheetIcon) {
         generateSheetIcon.addEventListener('click', generateSheet);
     }
 
-    // Expose functions globally if needed for inline HTML event handlers (though not best practice)
+    // Expõe funções globalmente se necessário para manipuladores de eventos HTML inline
+    // Embora não seja a melhor prática, é mantido para compatibilidade com o HTML existente.
     window.toggleStep = toggleStep;
     window.updateCalculations = updateCalculations;
     window.generateSheet = generateSheet;
+    window.templateManager = templateManager; // Expõe para uso em onclick de templates
 };
