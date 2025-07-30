@@ -799,12 +799,13 @@ function updateUI(performance) {
         const displayElements = ['display_name', 'display_type', 'display_doctrine', 'unit_cost', 'total_production_cost',
                                  'total_metal_cost', 'total_weight', 'total_power', 'speed_max_sl', 'speed_max_alt',
                                  'rate_of_climb', 'service_ceiling', 'max_range', 'turn_time', 'main_armament',
-                                 'reliability_display', 'country_production_capacity', 'producible_units', 'country_metal_balance'];
+                                 'reliability_display', 'country_production_capacity', 'producible_units', 'country_metal_balance',
+                                 'display_country_tech_civil', 'display_country_air_tech', 'display_country_urbanization', 'display_country_cost_reduction']; // Adicionados novos IDs
         displayElements.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 if (id === 'display_name') el.textContent = 'Sem nome';
-                else if (id === 'display_type' || id === 'display_doctrine') el.textContent = '-';
+                else if (['display_type', 'display_doctrine', 'display_country_tech_civil', 'display_country_air_tech', 'display_country_urbanization', 'display_country_cost_reduction'].includes(id)) el.textContent = 'N/A'; // Define N/A para os novos campos
                 else if (id === 'main_armament') el.textContent = 'Desarmado';
                 else el.textContent = '0'; // Para valores numéricos
             }
@@ -816,7 +817,7 @@ function updateUI(performance) {
         }
         return;
     }
-    const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData } = performance;
+    const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData, countryCostReduction } = performance; // Desestruturado countryCostReduction
 
     const elements = {
         'display_name': inputs.aircraftName,
@@ -857,6 +858,24 @@ function updateUI(performance) {
         if (metalStatusEl) {
             metalStatusEl.textContent = totalMetalCost > countryData.metal_balance ? '⚠️ Saldo de metais insuficiente!' : '✅ Saldo de metais suficiente.';
             metalStatusEl.className = `text-xs font-medium mt-1 text-center ${totalMetalCost > countryData.metal_balance ? 'text-red-600' : 'text-green-600'}`;
+        }
+
+        // NOVAS LINHAS PARA EXIBIR AS INFORMAÇÕES DO PAÍS
+        const displayCountryTechCivil = document.getElementById('display_country_tech_civil');
+        if (displayCountryTechCivil) {
+            displayCountryTechCivil.textContent = Math.round(countryData.tech_civil).toLocaleString('pt-BR');
+        }
+        const displayCountryAirTech = document.getElementById('display_country_air_tech');
+        if (displayCountryAirTech) {
+            displayCountryAirTech.textContent = Math.round(countryData.tech_level_air).toLocaleString('pt-BR');
+        }
+        const displayCountryUrbanization = document.getElementById('display_country_urbanization');
+        if (displayCountryUrbanization) {
+            displayCountryUrbanization.textContent = Math.round(countryData.urbanization).toLocaleString('pt-BR');
+        }
+        const displayCountryCostReduction = document.getElementById('display_country_cost_reduction');
+        if (displayCountryCostReduction) {
+            displayCountryCostReduction.textContent = `${(countryCostReduction * 100).toFixed(1)}%`;
         }
     }
     updateStatusAndWarnings(performance);
@@ -1161,7 +1180,8 @@ function updateCalculations() {
         inputs, adjustedUnitCost: finalUnitCost, baseMetalCost, combatWeight, totalEnginePower,
         finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s,
         finalReliability, offensiveArmamentTexts, defensiveArmamentTexts,
-        countryData, wingLoading, typeData, rawSpeedKmhAlt, rawRangeKm, superchargerData, aero, propData
+        countryData, wingLoading, typeData, rawSpeedKmhAlt, rawRangeKm, superchargerData, aero, propData,
+        countryCostReduction // Inclui a redução de custo do país aqui
     };
     updateUI(calculatedPerformance);
 
