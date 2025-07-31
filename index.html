@@ -648,8 +648,6 @@
                                 <span class="text-sm font-medium text-gray-600">Potência:</span>
                                 <span id="total_power" class="text-sm font-semibold text-blue-600">0 hp</span>
                             </div>
-                            <!-- REMOVIDO: Confiabilidade duplicada -->
-                            <!-- REMOVIDO: Armamento duplicado -->
                         </div>
 
                         <!-- Costs -->
@@ -667,6 +665,46 @@
                                 <span id="total_metal_cost" class="text-lg font-bold text-yellow-600">0</span>
                             </div>
                         </div>
+                        
+                        <!-- EQUIPMENT AND SYSTEMS SUMMARY -->
+                        <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
+                            <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-3 text-left">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-cog text-purple-600 mr-2 text-sm"></i>
+                                        <span class="font-medium text-sm">Detalhes do Projeto</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 text-xs space-y-2">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <span class="font-medium text-gray-600">Asas:</span>
+                                        <div id="summary_wing_features" class="mt-1 text-gray-700"></div>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-600">Motor:</span>
+                                        <div id="summary_engine_enhancements" class="mt-1 text-gray-700"></div>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-600">Proteção:</span>
+                                        <div id="summary_protection" class="mt-1 text-gray-700"></div>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-600">Cockpit:</span>
+                                        <div id="summary_cockpit_comfort" class="mt-1 text-gray-700"></div>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-600">Aviônicos:</span>
+                                        <div id="summary_advanced_avionics" class="mt-1 text-gray-700"></div>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-600">Equipamentos:</span>
+                                        <div id="summary_equipment" class="mt-1 text-gray-700"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Country Info -->
                         <div class="bg-purple-50 p-3 rounded-lg space-y-2">
@@ -682,7 +720,6 @@
                                 <span class="text-sm font-medium text-gray-600">Saldo Metal:</span>
                                 <span id="country_metal_balance" class="text-sm font-semibold text-purple-600">N/A</span>
                             </div>
-                            <!-- NOVOS CAMPOS AQUI -->
                             <div class="flex justify-between">
                                 <span class="text-sm font-medium text-gray-600">Tecnologia Civil:</span>
                                 <span id="display_country_tech_civil" class="text-sm font-semibold text-purple-600">N/A</span>
@@ -699,7 +736,6 @@
                                 <span class="text-sm font-medium text-gray-600">Redução de Custo do País:</span>
                                 <span id="display_country_cost_reduction" class="text-sm font-semibold text-purple-600">N/A</span>
                             </div>
-                            <!-- FIM DOS NOVOS CAMPOS -->
                             <div id="metal_balance_status" class="text-xs font-medium mt-1 text-center"></div>
                         </div>
 
