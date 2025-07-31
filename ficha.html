@@ -414,8 +414,6 @@
 
         function createPerformanceChart() {
             if (!aircraftData.performanceGraphData) {
-                // Se os dados do gráfico não existirem, gere-os usando as funções de cálculo
-                // Isso garante que o gráfico sempre terá dados, mesmo que o main.js não os tenha salvo explicitamente
                 aircraftData.performanceGraphData = generatePerformanceGraphData(aircraftData);
             }
 
@@ -460,7 +458,6 @@
         }
 
         function generatePerformanceGraphData(performanceData) {
-            // Verifica se as propriedades necessárias existem antes de tentar acessá-las
             if (!performanceData.combatWeight || !performanceData.totalEnginePower || !performanceData.propData || !performanceData.aero || !performanceData.superchargerData || !performanceData.typeData) {
                 console.error("Dados incompletos para gerar o gráfico de performance.");
                 return [];
@@ -540,10 +537,10 @@
 
             // Cria um canvas fora da tela para renderizar o gráfico
             const offscreenCanvas = document.createElement('canvas');
-            offscreenCanvas.width = 700; 
-            offscreenCanvas.height = 350; 
+            offscreenCanvas.width = 700; // Aumenta a largura para melhor resolução
+            offscreenCanvas.height = 350; // Aumenta a altura para melhor resolução
             const chartCtx = offscreenCanvas.getContext('2d');
-
+            
             const tempChart = new Chart(chartCtx, {
                 type: 'line',
                 data: {
@@ -566,31 +563,31 @@
                     }]
                 },
                 options: {
-                    responsive: false, // Desabilita para gerar a imagem com tamanho fixo
+                    responsive: false,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: true, position: 'top', labels: { font: { size: 10 } } } },
                     scales: {
                         x: { ticks: { font: { size: 9 } } },
                         y: { position: 'left', ticks: { font: { size: 9 } } },
-                        y1: { position: 'right', ticks: { font: { size: 9 } }, grid: { drawOnChartArea: false } }
+                        y1: { position: 'right', ticks: { font: { size: 9 } } }
                     }
                 }
             });
 
-            // Dá um tempo para o Chart.js renderizar
             setTimeout(() => {
                 const chartImg = document.createElement('img');
                 chartImg.src = offscreenCanvas.toDataURL('image/png');
                 chartImg.style.width = '100%';
                 chartImg.style.height = '100%';
                 
-                const middleSection = downloadLayout.querySelector('.middle-section');
-                middleSection.innerHTML = '';
-                middleSection.appendChild(chartImg);
+                const chartContainer = downloadLayout.querySelector('#download-chart-container');
+                if (chartContainer) {
+                    chartContainer.innerHTML = '';
+                    chartContainer.appendChild(chartImg);
+                }
 
-                // Agora que o gráfico está no layout temporário, podemos capturar a tela inteira.
                 html2canvas(downloadLayout, {
-                    scale: 2, // High resolution for better quality
+                    scale: 2, 
                     useCORS: true,
                     backgroundColor: null
                 }).then(canvas => {
@@ -610,18 +607,16 @@
                 position: fixed;
                 top: -10000px;
                 left: -10000px;
-                width: 1200px;
+                width: 1200px; 
                 height: 800px;
                 background: linear-gradient(135deg, #87CEEB 0%, #1E90FF 100%);
                 padding: 20px;
                 font-family: 'Inter', sans-serif;
                 box-sizing: border-box;
-                display: flex;
+                display: flex; 
                 flex-direction: column;
-                justify-content: space-between;
             `;
 
-            // HTML content for the horizontal layout
             layout.innerHTML = `
                 <div style="background: white; border-radius: 15px; padding: 20px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
                     <!-- Header -->
@@ -658,10 +653,10 @@
                         </div>
 
                         <!-- Middle Section: Detailed Stats and Chart -->
-                        <div class="middle-section" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
-                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Gráfico de Performance</h3>
-                                <div style="width: 100%; height: 100%;" id="chart-placeholder"></div>
+                                <div id="download-chart-container" style="position: relative; width: 100%; height: 300px;"></div>
                             </div>
                             <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Estatísticas Detalhadas</h3>
