@@ -1,7 +1,7 @@
 // assets/js/managers.js
 
 import { updateCalculations } from './calculations.js';
-import { updateUI } from './ui.js'; // Para restaurar o formulário
+import { updateUI } from './ui.js';
 
 // --- FUNÇÕES DE UTILIDADE ---
 /**
@@ -307,15 +307,7 @@ export class KeyboardManager {
 }
 
 // --- INSTÂNCIAS GLOBAIS (serão exportadas e inicializadas em main.js) ---
-export let stateManager;
-export let templateManager;
-export let autoSaveManager;
-export let keyboardManager;
-
-// Funções de inicialização para serem chamadas em main.js
-export function initializeManagers() {
-    stateManager = new StateManager();
-    templateManager = new TemplateManager();
-    autoSaveManager = new AutoSaveManager(); // AutoSaveManager carrega e restaura dados em sua inicialização
-    keyboardManager = new KeyboardManager(stateManager, autoSaveManager);
-}
+export const stateManager = new StateManager();
+export const templateManager = new TemplateManager();
+export const autoSaveManager = new AutoSaveManager();
+export const keyboardManager = new KeyboardManager(stateManager, autoSaveManager);
