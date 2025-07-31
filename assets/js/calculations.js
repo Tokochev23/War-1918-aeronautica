@@ -325,7 +325,7 @@ export function updateCalculations() {
             if(item) {
                 baseUnitCost += item.cost || 0;
                 totalEmptyWeight += item.weight || 0;
-                baseMetalCost += item.metal_cost || 0;
+                baseMetalCost = (baseMetalCost || 0) + (item.metal_cost || 0);
                 reliabilityModifier *= item.reliability_mod || 1.0;
                 aero.maneuverability_mod *= item.maneuverability_mod || 1.0;
                 aero.range_mod *= item.range_mod || 1.0;
