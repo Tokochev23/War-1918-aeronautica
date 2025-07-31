@@ -67,7 +67,8 @@ export function updateUI(performance) {
     }
     const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData, countryCostReduction } = performance;
 
-    const elements = {
+    // Novo objeto com valores formatados
+    const formattedElements = {
         'display_name': inputs.aircraftName,
         'display_type': typeData.name,
         'display_doctrine': gameData.doctrines[inputs.selectedAirDoctrine]?.name || '-',
@@ -87,7 +88,7 @@ export function updateUI(performance) {
         'main_armament': offensiveArmamentTexts.length > 0 ? offensiveArmamentTexts.join(', ') : "Desarmado",
         'reliability_display': `${finalReliability.toFixed(1)}%`
     };
-    Object.entries(elements).forEach(([id, value]) => {
+    Object.entries(formattedElements).forEach(([id, value]) => {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     });
