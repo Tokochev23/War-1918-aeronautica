@@ -27,7 +27,7 @@
             <div class="lg:col-span-2 space-y-6">
                 <!-- Step 1: Informações Básicas -->
                 <div class="step-card bg-white rounded-2xl shadow-xl overflow-hidden" id="step_1">
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 cursor-pointer" onclick="toggleStep(1)">
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 cursor-pointer step-header" data-step="1">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold">1</div>
@@ -41,20 +41,18 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Nome da Aeronave</label>
                                 <input type="text" id="aircraft_name" placeholder="Ex: Supermarine Spitfire" 
-                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade</label>
                                 <input type="number" id="quantity" min="1" max="9999" value="1"
-                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">País de Origem</label>
-                            <select id="country_doctrine" onchange="updateCalculations()"
+                            <select id="country_doctrine"
                                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="loading">Carregando países...</option>
                             </select>
@@ -63,7 +61,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Doutrina Aérea</label>
-                            <select id="air_doctrine" onchange="updateCalculations()"
+                            <select id="air_doctrine"
                                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="">Selecione uma Doutrina...</option>
                                 <option value="air_superiority">Superioridade Aérea</option>
@@ -82,8 +80,7 @@
                                 </span>
                             </label>
                             <input type="range" id="production_quality_slider" min="0" max="100" value="50"
-                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                   oninput="updateCalculations()">
+                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                             <p id="production_quality_note" class="text-sm text-center mt-2 text-gray-600"></p>
                         </div>
                     </div>
@@ -91,7 +88,7 @@
 
                 <!-- Step 2: Configuração Base -->
                 <div class="step-card bg-white rounded-2xl shadow-xl overflow-hidden" id="step_2">
-                    <div class="bg-gradient-to-r from-green-600 to-green-800 text-white p-4 cursor-pointer" onclick="toggleStep(2)">
+                    <div class="bg-gradient-to-r from-green-600 to-green-800 text-white p-4 cursor-pointer step-header" data-step="2">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold">2</div>
@@ -104,7 +101,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Aeronave</label>
-                                <select id="aircraft_type" onchange="updateCalculations()"
+                                <select id="aircraft_type"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="">Selecione o tipo...</option>
                                     <option value="light_fighter">Caça Leve</option>
@@ -124,7 +121,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Material da Estrutura</label>
-                                <select id="structure_type" onchange="updateCalculations()"
+                                <select id="structure_type"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="wood_fabric">Madeira e Tecido</option>
                                     <option value="wood_metal">Madeira e Metal</option>
@@ -135,7 +132,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Asa</label>
-                                <select id="wing_type" onchange="updateCalculations()"
+                                <select id="wing_type"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="monoplane_cantilever">Monoplano Cantilever</option>
                                     <option value="biplane">Biplano</option>
@@ -145,7 +142,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Trem de Pouso</label>
-                                <select id="landing_gear_type" onchange="updateCalculations()"
+                                <select id="landing_gear_type"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="fixed_gear">Fixo</option>
                                     <option value="retractable_gear">Retrátil</option>
@@ -160,19 +157,19 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Características das Asas</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="flaps" onchange="updateCalculations()" class="w-4 h-4 text-green-600">
+                                    <input type="checkbox" id="flaps" class="w-4 h-4 text-green-600">
                                     <label for="flaps" class="text-sm">Flaps</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="slats" onchange="updateCalculations()" class="w-4 h-4 text-green-600">
+                                    <input type="checkbox" id="slats" class="w-4 h-4 text-green-600">
                                     <label for="slats" class="text-sm">Slats</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="folding_wings" onchange="updateCalculations()" class="w-4 h-4 text-green-600">
+                                    <input type="checkbox" id="folding_wings" class="w-4 h-4 text-green-600">
                                     <label for="folding_wings" class="text-sm">Asas Dobráveis (Naval)</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="swept_wings" onchange="updateCalculations()" class="w-4 h-4 text-green-600">
+                                    <input type="checkbox" id="swept_wings" class="w-4 h-4 text-green-600">
                                     <label for="swept_wings" class="text-sm">Asas Enflechadas (Experimental)</label>
                                 </div>
                             </div>
@@ -181,8 +178,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Número de Tripulantes</label>
                             <input type="number" id="num_crewmen" min="1" max="20" value="1"
-                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                   oninput="updateCalculations()">
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <p id="crew_note" class="text-sm text-gray-600 mt-1"></p>
                         </div>
                     </div>
@@ -190,7 +186,7 @@
 
                 <!-- Step 3: Motor e Propulsão -->
                 <div class="step-card bg-white rounded-2xl shadow-xl overflow-hidden" id="step_3">
-                    <div class="bg-gradient-to-r from-orange-600 to-red-600 text-white p-4 cursor-pointer" onclick="toggleStep(3)">
+                    <div class="bg-gradient-to-r from-orange-600 to-red-600 text-white p-4 cursor-pointer step-header" data-step="3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold">3</div>
@@ -203,7 +199,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Motor</label>
-                                <select id="engine_type" onchange="updateCalculations()"
+                                <select id="engine_type"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                     <option value="">Selecione um motor...</option>
                                     <option value="radial_7">Motor Radial 7 cilindros</option>
@@ -221,19 +217,17 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Número de Motores</label>
                                 <input type="number" id="num_engines" min="1" max="8" value="1"
-                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Potência por Motor (HP)</label>
                                 <input type="number" id="engine_power" min="50" max="3000" value="500"
-                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        oninput="updateCalculations()">
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                 <p id="engine_power_note" class="text-sm text-red-600 mt-1"></p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Hélice</label>
-                                <select id="propeller_type" onchange="updateCalculations()"
+                                <select id="propeller_type"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                     <option value="wood_2">Madeira 2 pás</option>
                                     <option value="wood_3">Madeira 3 pás</option>
@@ -245,7 +239,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Sistema de Refrigeração</label>
-                                <select id="cooling_system" onchange="updateCalculations()"
+                                <select id="cooling_system"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                     <option value="air">Refrigeração a Ar</option>
                                     <option value="liquid">Refrigeração Líquida</option>
@@ -254,7 +248,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Alimentação de Combustível</label>
-                                <select id="fuel_feed" onchange="updateCalculations()"
+                                <select id="fuel_feed"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                     <option value="carburetor">Carburador</option>
                                     <option value="injection">Injeção de Combustível</option>
@@ -263,7 +257,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Sobrealimentação</label>
-                                <select id="supercharger" onchange="updateCalculations()"
+                                <select id="supercharger"
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
                                     <option value="none">Nenhum</option>
                                     <option value="single_stage">Mecânico - 1 Estágio</option>
@@ -278,11 +272,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Melhorias do Motor</label>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="ducted_radiators" onchange="updateCalculations()" class="w-4 h-4 text-orange-600">
+                                    <input type="checkbox" id="ducted_radiators" class="w-4 h-4 text-orange-600">
                                     <label for="ducted_radiators" class="text-sm">Radiadores Dutados</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="intercoolers" onchange="updateCalculations()" class="w-4 h-4 text-orange-600">
+                                    <input type="checkbox" id="intercoolers" class="w-4 h-4 text-orange-600">
                                     <label for="intercoolers" class="text-sm">Intercoolers</label>
                                 </div>
                             </div>
@@ -292,7 +286,7 @@
 
                 <!-- Step 4: Armamentos -->
                 <div class="step-card bg-white rounded-2xl shadow-xl overflow-hidden" id="step_4">
-                    <div class="bg-gradient-to-r from-red-600 to-red-800 text-white p-4 cursor-pointer" onclick="toggleStep(4)">
+                    <div class="bg-gradient-to-r from-red-600 to-red-800 text-white p-4 cursor-pointer step-header" data-step="4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold">4</div>
@@ -309,86 +303,72 @@
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .30 (7.62mm)</label>
                                     <input type="number" id="mg_30" min="0" max="8" value="0" 
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .50 (12.7mm)</label>
                                     <input type="number" id="mg_50" min="0" max="8" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 20mm</label>
                                     <input type="number" id="cannon_20" min="0" max="6" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 30mm</label>
                                     <input type="number" id="cannon_30" min="0" max="4" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 37mm</label>
                                     <input type="number" id="cannon_37" min="0" max="2" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão Anti-Tanque 40mm</label>
                                     <input type="number" id="cannon_at_40" min="0" max="2" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 50kg</label>
                                     <input type="number" id="bomb_50" min="0" max="20" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 100kg</label>
                                     <input type="number" id="bomb_100" min="0" max="16" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 250kg</label>
                                     <input type="number" id="bomb_250" min="0" max="8" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 500kg</label>
                                     <input type="number" id="bomb_500" min="0" max="4" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas 1000kg</label>
                                     <input type="number" id="bomb_1000" min="0" max="2" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Torpedo Naval</label>
                                     <input type="number" id="torpedo" min="0" max="1" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Bombas Incendiárias</label>
                                     <input type="number" id="incendiary" min="0" max="10" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Foguetes Ar-Terra</label>
                                     <input type="number" id="rockets" min="0" max="16" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                             </div>
                         </div>
@@ -398,7 +378,7 @@
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🛡️ Armamentos Defensivos</h4>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Torre Defensiva</label>
-                                <select id="defensive_turret_type" onchange="updateCalculations()"
+                                <select id="defensive_turret_type"
                                         class="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
                                     <option value="none_turret">Nenhum</option>
                                     <option value="manned_turret">Torreta Tripulada (Manual)</option>
@@ -411,20 +391,17 @@
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .30 (Defensiva)</label>
                                     <input type="number" id="defensive_mg_30" min="0" max="4" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Metralhadora .50 (Defensiva)</label>
                                     <input type="number" id="defensive_mg_50" min="0" max="4" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                                 <div class="form-row">
                                     <label class="text-sm font-medium">Canhão 20mm (Defensivo)</label>
                                     <input type="number" id="defensive_cannon_20" min="0" max="2" value="0"
-                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                                            oninput="updateCalculations()">
+                                            class="w-20 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500">
                                 </div>
                             </div>
                         </div>
@@ -433,7 +410,7 @@
 
                 <!-- Step 5: Equipamentos e Sistemas -->
                 <div class="step-card bg-white rounded-2xl shadow-xl overflow-hidden" id="step_5">
-                    <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-4 cursor-pointer" onclick="toggleStep(5)">
+                    <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-4 cursor-pointer step-header" data-step="5">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold">5</div>
@@ -448,19 +425,19 @@
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🛡️ Proteção</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="pilot_armor" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="pilot_armor" class="w-4 h-4 text-purple-600">
                                     <label for="pilot_armor" class="text-sm">Blindagem do Piloto</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="engine_armor" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="engine_armor" class="w-4 h-4 text-purple-600">
                                     <label for="engine_armor" class="text-sm">Blindagem do Motor</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="tank_armor" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="tank_armor" class="w-4 h-4 text-purple-600">
                                     <label for="tank_armor" class="text-sm">Blindagem dos Tanques</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="self_sealing_tanks" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="self_sealing_tanks" class="w-4 h-4 text-purple-600">
                                     <label for="self_sealing_tanks" class="text-sm">Tanques Auto-Selantes</label>
                                 </div>
                             </div>
@@ -471,27 +448,27 @@
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🪑 Cockpit e Conforto</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="enclosed_cockpit" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="enclosed_cockpit" class="w-4 h-4 text-purple-600">
                                     <label for="enclosed_cockpit" class="text-sm">Cabine Fechada</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="heated_cockpit" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="heated_cockpit" class="w-4 h-4 text-purple-600">
                                     <label for="heated_cockpit" class="text-sm">Cabine Aquecida</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="oxygen_system" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="oxygen_system" class="w-4 h-4 text-purple-600">
                                     <label for="oxygen_system" class="text-sm">Sistema de Oxigênio</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="pressurized_cabin" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="pressurized_cabin" class="w-4 h-4 text-purple-600">
                                     <label for="pressurized_cabin" class="text-sm">Cabine Pressurizada</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="basic_autopilot" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="basic_autopilot" class="w-4 h-4 text-purple-600">
                                     <label for="basic_autopilot" class="text-sm">Piloto Automático Básico</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="ejection_seat" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="ejection_seat" class="w-4 h-4 text-purple-600">
                                     <label for="ejection_seat" class="text-sm">Assento Ejetável (Exp.)</label>
                                 </div>
                             </div>
@@ -502,35 +479,35 @@
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">📡 Sistemas Avançados e Aviônicos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="radio_direction_finder" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="radio_direction_finder" class="w-4 h-4 text-purple-600">
                                     <label for="radio_direction_finder" class="text-sm">Rádio Direção (RDF)</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="blind_flying_instruments" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="blind_flying_instruments" class="w-4 h-4 text-purple-600">
                                     <label for="blind_flying_instruments" class="text-sm">Instrumentos de Voo por Instrumentos</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="nav_instruments" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="nav_instruments" class="w-4 h-4 text-purple-600">
                                     <label for="nav_instruments" class="text-sm">Instrumentos de Navegação</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="gyro_compass" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="gyro_compass" class="w-4 h-4 text-purple-600">
                                     <label for="gyro_compass" class="text-sm">Bússola Giroscópica</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="basic_bomb_sight" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="basic_bomb_sight" class="w-4 h-4 text-purple-600">
                                     <label for="basic_bomb_sight" class="text-sm">Mira de Bombardeio (Básica)</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="advanced_bomb_sight" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="advanced_bomb_sight" class="w-4 h-4 text-purple-600">
                                     <label for="advanced_bomb_sight" class="text-sm">Mira de Bombardeio (Avançada)</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="camera_equipment" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="camera_equipment" class="w-4 h-4 text-purple-600">
                                     <label for="camera_equipment" class="text-sm">Equipamento de Câmera (Recon)</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="early_radar" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="early_radar" class="w-4 h-4 text-purple-600">
                                     <label for="early_radar" class="text-sm">Radar Inicial (Experimental)</label>
                                 </div>
                             </div>
@@ -541,51 +518,51 @@
                             <h4 class="text-lg font-semibold text-gray-800 mb-3">🔧 Equipamentos</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="parachute" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="parachute" class="w-4 h-4 text-purple-600">
                                     <label for="parachute" class="text-sm">Paraquedas</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="fire_extinguisher" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="fire_extinguisher" class="w-4 h-4 text-purple-600">
                                     <label for="fire_extinguisher" class="text-sm">Sistema Anti-Incêndio</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="radio_hf" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="radio_hf" class="w-4 h-4 text-purple-600">
                                     <label for="radio_hf" class="text-sm">Rádio HF</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="gun_synchronizer" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="gun_synchronizer" class="w-4 h-4 text-purple-600">
                                     <label for="gun_synchronizer" class="text-sm">Sincronizador de Metralhadoras</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="dive_brakes" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="dive_brakes" class="w-4 h-4 text-purple-600">
                                     <label for="dive_brakes" class="text-sm">Freios de Mergulho</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="sirens" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="sirens" class="w-4 h-4 text-purple-600">
                                     <label for="sirens" class="text-sm">Sirenes Psicológicas</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="jato" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="jato" class="w-4 h-4 text-purple-600">
                                     <label for="jato" class="text-sm">Foguetes Auxiliares (JATO)</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="advanced_control_surfaces" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="advanced_control_surfaces" class="w-4 h-4 text-purple-600">
                                     <label for="advanced_control_surfaces" class="text-sm">Superfícies de Controle Avançadas</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="arresting_hook" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="arresting_hook" class="w-4 h-4 text-purple-600">
                                     <label for="arresting_hook" class="text-sm">Gancho de Arresto</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="smoke_generators" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="smoke_generators" class="w-4 h-4 text-purple-600">
                                     <label for="smoke_generators" class="text-sm">Geradores de Fumaça</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="extra_fuel_tanks" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="extra_fuel_tanks" class="w-4 h-4 text-purple-600">
                                     <label for="extra_fuel_tanks" class="text-sm">Tanques de Combustíveis Extras (Fixos)</label>
                                 </div>
                                 <div class="checkbox-row">
-                                    <input type="checkbox" id="drop_tanks" onchange="updateCalculations()" class="w-4 h-4 text-purple-600">
+                                    <input type="checkbox" id="drop_tanks" class="w-4 h-4 text-purple-600">
                                     <label for="drop_tanks" class="text-sm">Tanques de Combustíveis Descartáveis</label>
                                 </div>
                             </div>
@@ -600,7 +577,7 @@
                     <div class="bg-gradient-to-r from-slate-700 to-slate-900 text-white p-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-semibold">📊 Resumo da Aeronave</h3>
-                            <button onclick="generateSheet()" 
+                            <button id="generate-sheet-icon"
                                     class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
                                     title="Gerar Ficha Detalhada">
                                 <i class="fas fa-file-invoice text-lg"></i>
@@ -739,6 +716,6 @@
     </div>
 
     <!-- Link para o arquivo JavaScript principal -->
-    <script src="assets/js/main.js"></script>
+    <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
