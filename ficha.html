@@ -451,7 +451,7 @@
                     scales: {
                         x: { ticks: { font: { size: 9 } } },
                         y: { position: 'left', ticks: { font: { size: 9 } } },
-                        y1: { position: 'right', ticks: { font: { size: 9 } }, grid: { drawOnChartArea: false } }
+                        y1: { position: 'right', ticks: { font: { size: 9 } } }
                     }
                 }
             });
@@ -532,13 +532,16 @@
         }
 
         function saveAsPNG() {
+            if (!aircraftData.performanceGraphData || aircraftData.performanceGraphData.length === 0) {
+                console.error("Dados do gráfico de performance ausentes ou incompletos.");
+                return;
+            }
             const downloadLayout = createDownloadLayout();
             document.body.appendChild(downloadLayout);
 
-            // Cria um canvas fora da tela para renderizar o gráfico
             const offscreenCanvas = document.createElement('canvas');
-            offscreenCanvas.width = 700; // Aumenta a largura para melhor resolução
-            offscreenCanvas.height = 350; // Aumenta a altura para melhor resolução
+            offscreenCanvas.width = 700;
+            offscreenCanvas.height = 350;
             const chartCtx = offscreenCanvas.getContext('2d');
             
             const tempChart = new Chart(chartCtx, {
