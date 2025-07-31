@@ -318,16 +318,14 @@
     </div>
 
     <script type="module">
-        // Caminhos de importação ajustados para a estrutura de pastas
-        import { getAirPropertiesAtAltitude, calculateEnginePowerAtAltitude, calculatePerformanceAtAltitude, calculateRateOfClimb } from './assets/js/calculations.js';
-        import { realWorldAircraft, gameData } from './assets/js/data.js';
+        import { gameData, realWorldAircraft } from './assets/js/data.js';
 
         let aircraftData = {};
-        let performanceChart = null; // Mantenha esta variável para a instância do Chart.js
+        let performanceChart = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
-            setupEventListeners(); // Chama a nova função para configurar os listeners
+            setupEventListeners();
         });
 
         function loadData() {
@@ -348,77 +346,70 @@
             if (aircraftDataString) {
                 aircraftData = JSON.parse(aircraftDataString);
                 populateSheet();
-                createPerformanceChart(); // Cria o gráfico ao carregar a ficha
+                // createPerformanceChart();
             } else {
                 document.getElementById('aircraft_name').textContent = 'Dados não encontrados';
                 document.getElementById('aircraft_subtitle').textContent = 'Volte e gere a ficha novamente.';
             }
         }
 
-        // Nova função para configurar os event listeners
         function setupEventListeners() {
             document.getElementById('save-as-png-btn').addEventListener('click', saveAsPNG);
             document.getElementById('apply-image-btn').addEventListener('click', applyImageSelection);
             document.getElementById('close-image-modal-btn').addEventListener('click', closeImageSelector);
-            document.getElementById('aircraft_image').addEventListener('click', openImageSelector); // Para abrir o modal clicando na imagem
+            document.querySelectorAll('[onclick^="toggleCard"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const cardId = button.getAttribute('onclick').match(/toggleCard\('(.+?)'\)/)[1];
+                    toggleCard(cardId);
+                });
+            });
+            document.getElementById('aircraft_image').addEventListener('click', openImageSelector);
         }
 
         function populateSheet() {
-            // Header
             document.getElementById('aircraft_name').textContent = aircraftData.inputs?.aircraftName || 'Nome da Aeronave';
             document.getElementById('aircraft_subtitle').textContent = `${aircraftData.typeData?.name || 'Tipo'} - ${aircraftData.inputs?.selectedAirDoctrine ? gameData.doctrines[aircraftData.inputs.selectedAirDoctrine]?.name : 'Doutrina'}`;
-
-            // Quick stats
-            document.getElementById('unit_cost').textContent = aircraftData.adjustedUnitCost?.toLocaleString('pt-BR') || '$0';
-            document.getElementById('max_speed').textContent = `${Math.round(aircraftData.finalSpeedKmhAlt).toLocaleString('pt-BR')} km/h` || '0 km/h';
-            document.getElementById('total_power').textContent = `${Math.round(aircraftData.totalEnginePower).toLocaleString('pt-BR')} HP` || '0 HP';
-            document.getElementById('reliability').textContent = `${aircraftData.finalReliability?.toFixed(1)}%` || '0%';
-
-            // Detailed stats
-            document.getElementById('total_weight').textContent = `${Math.round(aircraftData.combatWeight).toLocaleString('pt-BR')} kg` || '0 kg';
-            document.getElementById('rate_of_climb').textContent = `${aircraftData.rate_of_climb_ms?.toFixed(1)} m/s` || '0 m/s';
-            document.getElementById('service_ceiling').textContent = `${Math.round(aircraftData.finalServiceCeiling).toLocaleString('pt-BR')} m` || '0 m';
-            document.getElementById('max_range').textContent = `${Math.round(aircraftData.finalRangeKm).toLocaleString('pt-BR')} km` || '0 km';
-            document.getElementById('turn_time').textContent = `${aircraftData.turn_time_s?.toFixed(1)}s` || '0s';
+            document.getElementById('unit_cost').textContent = (aircraftData.adjustedUnitCost?.toLocaleString('pt-BR') || '$0');
+            document.getElementById('max_speed').textContent = `${Math.round(aircraftData.finalSpeedKmhAlt)?.toLocaleString('pt-BR') || '0'} km/h`;
+            document.getElementById('total_power').textContent = `${Math.round(aircraftData.totalEnginePower)?.toLocaleString('pt-BR') || '0'} HP`;
+            document.getElementById('reliability').textContent = `${aircraftData.finalReliability?.toFixed(1) || '0'}%`;
+            document.getElementById('total_weight').textContent = `${Math.round(aircraftData.combatWeight)?.toLocaleString('pt-BR') || '0'} kg`;
+            document.getElementById('rate_of_climb').textContent = `${aircraftData.rate_of_climb_ms?.toFixed(1) || '0'} m/s`;
+            document.getElementById('service_ceiling').textContent = `${Math.round(aircraftData.finalServiceCeiling)?.toLocaleString('pt-BR') || '0'} m`;
+            document.getElementById('max_range').textContent = `${Math.round(aircraftData.finalRangeKm)?.toLocaleString('pt-BR') || '0'} km`;
+            document.getElementById('turn_time').textContent = `${aircraftData.turn_time_s?.toFixed(1) || '0'}s`;
             document.getElementById('num_crewmen').textContent = aircraftData.inputs?.numCrewmen || '0';
-
-            // Armament
             document.getElementById('offensive_armament').textContent = aircraftData.offensiveArmamentTexts?.length > 0 ? aircraftData.offensiveArmamentTexts.join(', ') : 'Nenhum';
             document.getElementById('defensive_armament').textContent = aircraftData.defensiveArmamentTexts?.length > 0 ? aircraftData.defensiveArmamentTexts.join(', ') : 'Nenhum';
-
-            // Design details
             document.getElementById('aircraft_type').textContent = aircraftData.typeData?.name || '-';
             document.getElementById('structure_type').textContent = aircraftData.inputs?.structureType ? gameData.components.structure_materials[aircraftData.inputs.structureType]?.name : '-';
             document.getElementById('propeller_type').textContent = aircraftData.inputs?.propellerType ? gameData.components.propellers[aircraftData.inputs.propellerType]?.name : '-';
             document.getElementById('cooling_system').textContent = aircraftData.inputs?.coolingSystem ? gameData.components.cooling_systems[aircraftData.inputs.coolingSystem]?.name : '-';
             document.getElementById('wing_type').textContent = aircraftData.inputs?.wingType ? gameData.components.wing_types[aircraftData.inputs.wingType]?.name : '-';
             document.getElementById('landing_gear_type').textContent = aircraftData.inputs?.landingGearType ? gameData.components.landing_gear_types[aircraftData.inputs.landingGearType]?.name : '-';
-
-            // Equipment lists (usando os IDs dos checkboxes para buscar os nomes)
             populateEquipmentList('wing_features', aircraftData.inputs?.checkboxes?.wing_features.map(id => gameData.components.wing_features[id]?.name));
             populateEquipmentList('engine_enhancements', aircraftData.inputs?.checkboxes?.engine_enhancements.map(id => gameData.components.engine_enhancements[id]?.name));
             populateEquipmentList('protection', aircraftData.inputs?.checkboxes?.protection.map(id => gameData.components.protection[id]?.name));
             populateEquipmentList('cockpit_comfort', aircraftData.inputs?.checkboxes?.cockpit_comfort.map(id => gameData.components.cockpit_comfort[id]?.name));
             populateEquipmentList('advanced_avionics', aircraftData.inputs?.checkboxes?.advanced_avionics.map(id => gameData.components.advanced_avionics[id]?.name));
             populateEquipmentList('equipment', aircraftData.inputs?.checkboxes?.equipment.map(id => gameData.components.equipment[id]?.name));
-            // A feature de maintainability_features não está nos inputs do main.js, então será sempre 'Nenhum' ou vazia.
-            // Se você quiser que ela seja preenchida, precisa adicioná-la aos inputs do main.js
             populateEquipmentList('maintainability_features', aircraftData.inputs?.checkboxes?.maintainability_features?.map(id => gameData.components.maintainability_features[id]?.name));
         }
 
         function populateEquipmentList(elementId, items) {
             const container = document.getElementById(elementId);
-            if (!container) return; // Adicionado para evitar erros se o elemento não existir
-            container.innerHTML = ''; // Clear previous items
-            if (items && items.length > 0 && items.some(item => item !== undefined)) { // Verifica se há itens válidos
-                return items.filter(item => item !== undefined).map(item => `<div class="py-1 text-xs">• ${item}</div>`).join('');
+            if (!container) return;
+            container.innerHTML = '';
+            if (items && items.length > 0 && items.some(item => item !== undefined)) {
+                container.innerHTML = items.filter(item => item !== undefined).map(item => `<div class="py-1 text-xs">• ${item}</div>`).join('');
+            } else {
+                container.innerHTML = '<div class="text-gray-500 text-xs">Nenhum</div>';
             }
-            return '<div class="text-gray-500 text-xs">Nenhum</div>';
         }
 
         function populateAircraftSelect(aircraftList) {
             const select = document.getElementById('aircraft_select');
-            select.innerHTML = '<option value="">Selecione...</option>'; // Clear and add default
+            select.innerHTML = '<option value="">Selecione...</option>';
             aircraftList.forEach(aircraft => {
                 const option = document.createElement('option');
                 option.value = aircraft.id;
@@ -429,8 +420,6 @@
 
         function createPerformanceChart() {
             if (!aircraftData.performanceGraphData) {
-                // Se os dados do gráfico não existirem, gere-os usando as funções de cálculo
-                // Isso garante que o gráfico sempre terá dados, mesmo que o main.js não os tenha salvo explicitamente
                 aircraftData.performanceGraphData = generatePerformanceGraphData(aircraftData);
             }
 
@@ -474,33 +463,24 @@
             });
         }
 
-        // Re-implementação de generatePerformanceGraphData para ficha.html
         function generatePerformanceGraphData(performanceData) {
             const { combatWeight, totalEnginePower, propData, aero, superchargerData, finalServiceCeiling, typeData } = performanceData;
             const data = [];
-            // Itera por altitudes em incrementos de 1000m até 15000m ou o teto de serviço
             for (let h = 0; h <= 15000; h += 1000) {
                 let currentAlt = h;
-                // Se a altitude atual for maior que o teto de serviço, usa o teto de serviço para o cálculo
                 if (h > finalServiceCeiling && finalServiceCeiling > 0) {
                     currentAlt = finalServiceCeiling;
                 }
-
                 const perfPoint = calculatePerformanceAtAltitude(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData);
                 let cappedSpeed = perfPoint.speed_kmh * aero.speed_mod;
-                // Limita a velocidade à máxima permitida para o tipo de aeronave
                 if (typeData.limits && cappedSpeed > typeData.limits.max_speed) {
                     cappedSpeed = typeData.limits.max_speed;
                 }
-
                 data.push({
                     altitude: currentAlt,
-                    // Velocidade e RoC são 0 acima do teto de serviço
                     speed: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : cappedSpeed,
                     roc: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : calculateRateOfClimb(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData)
                 });
-
-                // Se o teto de serviço foi atingido ou ultrapassado, adiciona um ponto extra no teto exato e para
                 if (h >= finalServiceCeiling && finalServiceCeiling > 0) {
                     if (data[data.length -1].altitude !== finalServiceCeiling) {
                         data.push({
@@ -554,21 +534,69 @@
             const downloadLayout = createDownloadLayout();
             document.body.appendChild(downloadLayout);
 
-            // Give Chart.js a moment to render the chart in the hidden canvas
+            const offscreenCanvas = document.createElement('canvas');
+            offscreenCanvas.width = 700; // Largura do gráfico
+            offscreenCanvas.height = 350; // Altura do gráfico
+            const chartCtx = offscreenCanvas.getContext('2d');
+            
+            const tempChart = new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    labels: aircraftData.performanceGraphData.map(d => `${(d.altitude / 1000).toFixed(0)}km`),
+                    datasets: [{
+                        label: 'Velocidade',
+                        data: aircraftData.performanceGraphData.map(d => d.speed),
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    }, {
+                        label: 'Subida',
+                        data: aircraftData.performanceGraphData.map(d => d.roc),
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        yAxisID: 'y1',
+                    }]
+                },
+                options: {
+                    responsive: false, // Desabilita para gerar a imagem com tamanho fixo
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'top', labels: { font: { size: 10 } } } },
+                    scales: {
+                        x: { ticks: { font: { size: 9 } } },
+                        y: { position: 'left', ticks: { font: { size: 9 } } },
+                        y1: { position: 'right', ticks: { font: { size: 9 } }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            // Dá um tempo para o Chart.js renderizar
             setTimeout(() => {
+                const chartImg = document.createElement('img');
+                chartImg.src = offscreenCanvas.toDataURL('image/png');
+                chartImg.style.width = '100%';
+                chartImg.style.height = '100%';
+                
+                const middleSection = downloadLayout.querySelector('.middle-section');
+                middleSection.innerHTML = '';
+                middleSection.appendChild(chartImg);
+
+                // Agora que o gráfico está no layout temporário, podemos capturar a tela inteira.
                 html2canvas(downloadLayout, {
                     scale: 2, // High resolution for better quality
                     useCORS: true,
                     backgroundColor: null // Transparent background to show the gradient
                 }).then(canvas => {
                     document.body.removeChild(downloadLayout); // Remove temporary layout
-
+                    tempChart.destroy(); // Destrói o gráfico temporário
                     const link = document.createElement('a');
                     link.download = `${aircraftData.inputs?.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                 });
-            }, 100); // Small delay
+            }, 500); // Aumenta o delay para garantir que o gráfico seja renderizado
         }
 
         function createDownloadLayout() {
@@ -624,8 +652,12 @@
                             </div>
                         </div>
 
-                        <!-- Middle Section: Detailed Stats (now takes the place of the chart) -->
-                        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                        <!-- Middle Section: Detailed Stats and Chart -->
+                        <div class="middle-section" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Gráfico de Performance</h3>
+                                <canvas id="offscreenChart" width="700" height="350"></canvas>
+                            </div>
                             <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Estatísticas Detalhadas</h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; font-size: 11px;">
@@ -728,16 +760,11 @@
                     </div>
                 </div>
             `;
-
-            // We no longer need to create a chart for the download layout if it's removed
-            // The setTimeout block for Chart.js initialization is also removed from here.
-            // If you decide to add a chart back to the horizontal layout, you'll need to re-add it here.
-
             return layout;
         }
 
         function getEquipmentListHTML(items) {
-            if (items && items.length > 0 && items.some(item => item !== undefined)) { // Verifica se há itens válidos
+            if (items && items.length > 0 && items.some(item => item !== undefined)) {
                 return items.filter(item => item !== undefined).map(item => `<div style="font-size: 10px; margin-bottom: 2px;">• ${item}</div>`).join('');
             }
             return '<div style="font-size: 10px; color: #9ca3af;">Nenhum</div>';
