@@ -228,8 +228,7 @@ export function updateCalculations() {
     document.getElementById('propeller_type_note').textContent = propData ? propData.description : '';
     document.getElementById('cooling_system_note').textContent = coolingData ? coolingData.description : '';
     document.getElementById('fuel_feed_note').textContent = fuelFeedData ? fuelFeedData.description : '';
-    document.getElementById('supercharger_note').textContent = superchargerData ? superchargerData.description : '';
-    document.getElementById('doctrine_note').textContent = doctrineData ? doctrineData.description : "Selecione uma doutrina para ver seus efeitos.";
+    document.getElementById('supercharger_note').textContent = superchargerData ? superchargerData.description : "Selecione uma doutrina para ver seus efeitos.";
 
     // Validação inicial para componentes essenciais
     if (!typeData || !engineData || inputs.enginePower <= 0 || !propData || !superchargerData) {
