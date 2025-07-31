@@ -71,9 +71,11 @@ export function updateUI(performance) {
         'display_name': inputs.aircraftName,
         'display_type': typeData.name,
         'display_doctrine': gameData.doctrines[inputs.selectedAirDoctrine]?.name || '-',
-        'unit_cost': adjustedUnitCost.toLocaleString('pt-BR'),
-        'total_production_cost': (adjustedUnitCost * inputs.quantity).toLocaleString('pt-BR'),
-        'total_metal_cost': (baseMetalCost * inputs.quantity).toLocaleString('pt-BR'),
+        // Corrigido para formatar como moeda
+        'unit_cost': `£ ${adjustedUnitCost.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+        'total_production_cost': `£ ${(adjustedUnitCost * inputs.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+        // Corrigido para garantir que baseMetalCost é um número e formatado corretamente
+        'total_metal_cost': (baseMetalCost * inputs.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
         'total_weight': `${Math.round(combatWeight).toLocaleString('pt-BR')} kg`,
         'total_power': `${Math.round(totalEnginePower).toLocaleString('pt-BR')} hp`,
         'speed_max_sl': `${Math.round(finalSpeedKmhSL).toLocaleString('pt-BR')} km/h`,
@@ -131,6 +133,7 @@ export function updateUI(performance) {
     populateEquipmentListInUI('summary_cockpit_comfort', inputs.checkboxes.cockpit_comfort.map(id => gameData.components.cockpit_comfort[id]?.name));
     populateEquipmentListInUI('summary_advanced_avionics', inputs.checkboxes.advanced_avionics.map(id => gameData.components.advanced_avionics[id]?.name));
     populateEquipmentListInUI('summary_equipment', inputs.checkboxes.equipment.map(id => gameData.components.equipment[id]?.name));
+    populateEquipmentListInUI('summary_maintainability_features', inputs.checkboxes.maintainability_features.map(id => gameData.components.maintainability_features[id]?.name)); // Adicionado
 }
 
 /**
