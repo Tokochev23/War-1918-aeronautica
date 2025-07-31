@@ -1,10 +1,30 @@
 // assets/js/ui.js
 
 import { gameData, realWorldAircraft } from './data.js'; // Importa gameData e realWorldAircraft
-import { updateCalculations } from './calculations.js'; // Importa updateCalculations para uso em generateSheet
+import { updateCalculations, calculatePerformanceAtAltitude, calculateRateOfClimb } from './calculations.js'; // Importa updateCalculations e funções de cálculo
 import { templateManager, stateManager } from './managers.js'; // Importa managers
 
 let currentStep = 1;
+
+// Função auxiliar para preencher as listas de equipamentos
+function populateEquipmentListInUI(elementId, items) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+    container.innerHTML = ''; // Limpa os itens anteriores
+    if (items && items.length > 0 && items.some(item => item !== undefined)) {
+        items.filter(item => item !== undefined).forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'py-1 text-xs text-gray-700';
+            div.textContent = `• ${item}`;
+            container.appendChild(div);
+        });
+    } else {
+        const div = document.createElement('div');
+        div.className = 'text-gray-500 text-xs';
+        div.textContent = 'Nenhum';
+        container.appendChild(div);
+    }
+}
 
 /**
  * Atualiza os elementos da interface do usuário com os dados de performance calculados.
@@ -19,14 +39,14 @@ export function updateUI(performance) {
                                  'total_metal_cost', 'total_weight', 'total_power', 'speed_max_sl', 'speed_max_alt',
                                  'rate_of_climb', 'service_ceiling', 'max_range', 'turn_time', 'main_armament',
                                  'reliability_display', 'country_production_capacity', 'producible_units', 'country_metal_balance',
-                                 'display_country_tech_civil', 'display_country_air_tech', 'display_country_urbanization', 'display_country_cost_reduction']; // Adicionados novos IDs
+                                 'display_country_tech_civil', 'display_country_air_tech', 'display_country_urbanization', 'display_country_cost_reduction'];
         displayElements.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 if (id === 'display_name') el.textContent = 'Sem nome';
-                else if (['display_type', 'display_doctrine', 'display_country_tech_civil', 'display_country_air_tech', 'display_country_urbanization', 'display_country_cost_reduction'].includes(id)) el.textContent = 'N/A'; // Define N/A para os novos campos
+                else if (['display_type', 'display_doctrine', 'display_country_tech_civil', 'display_country_air_tech', 'display_country_urbanization', 'display_country_cost_reduction'].includes(id)) el.textContent = 'N/A';
                 else if (id === 'main_armament') el.textContent = 'Desarmado';
-                else el.textContent = '0'; // Para valores numéricos
+                else el.textContent = '0';
             }
         });
         const metalStatusEl = document.getElementById('metal_balance_status');
@@ -34,9 +54,18 @@ export function updateUI(performance) {
             metalStatusEl.textContent = '';
             metalStatusEl.className = 'text-xs font-medium mt-1 text-center';
         }
+
+        // Limpar também as listas de equipamentos no resumo
+        populateEquipmentListInUI('summary_wing_features', null);
+        populateEquipmentListInUI('summary_engine_enhancements', null);
+        populateEquipmentListInUI('summary_protection', null);
+        populateEquipmentListInUI('summary_cockpit_comfort', null);
+        populateEquipmentListInUI('summary_advanced_avionics', null);
+        populateEquipmentListInUI('summary_equipment', null);
+
         return;
     }
-    const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData, countryCostReduction } = performance; // Desestruturado countryCostReduction
+    const { inputs, adjustedUnitCost, baseMetalCost, combatWeight, totalEnginePower, finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s, finalReliability, offensiveArmamentTexts, countryData, typeData, countryCostReduction } = performance;
 
     const elements = {
         'display_name': inputs.aircraftName,
@@ -62,9 +91,6 @@ export function updateUI(performance) {
     });
 
     if (countryData) {
-        // Ajusta a capacidade de produção do país com base no slider de qualidade de produção
-        // Aumenta a capacidade se o slider estiver para "produção" (alto valor)
-        // Diminui a capacidade se o slider estiver para "qualidade" (baixo valor)
         let countryProductionCapacity = countryData.production_capacity * (1 + ((inputs.productionQualitySliderValue / 100) * 0.25) - (((100 - inputs.productionQualitySliderValue) / 100) * 0.10));
         document.getElementById('country_production_capacity').textContent = Math.round(countryProductionCapacity).toLocaleString('pt-BR');
 
@@ -79,7 +105,6 @@ export function updateUI(performance) {
             metalStatusEl.className = `text-xs font-medium mt-1 text-center ${totalMetalCost > countryData.metal_balance ? 'text-red-600' : 'text-green-600'}`;
         }
 
-        // NOVAS LINHAS PARA EXIBIR AS INFORMAÇÕES DO PAÍS
         const displayCountryTechCivil = document.getElementById('display_country_tech_civil');
         if (displayCountryTechCivil) {
             displayCountryTechCivil.textContent = Math.round(countryData.tech_civil).toLocaleString('pt-BR');
@@ -98,6 +123,14 @@ export function updateUI(performance) {
         }
     }
     updateStatusAndWarnings(performance);
+
+    // Adiciona a lógica para preencher as listas de equipamentos no resumo da página principal
+    populateEquipmentListInUI('summary_wing_features', inputs.checkboxes.wing_features.map(id => gameData.components.wing_features[id]?.name));
+    populateEquipmentListInUI('summary_engine_enhancements', inputs.checkboxes.engine_enhancements.map(id => gameData.components.engine_enhancements[id]?.name));
+    populateEquipmentListInUI('summary_protection', inputs.checkboxes.protection.map(id => gameData.components.protection[id]?.name));
+    populateEquipmentListInUI('summary_cockpit_comfort', inputs.checkboxes.cockpit_comfort.map(id => gameData.components.cockpit_comfort[id]?.name));
+    populateEquipmentListInUI('summary_advanced_avionics', inputs.checkboxes.advanced_avionics.map(id => gameData.components.advanced_avionics[id]?.name));
+    populateEquipmentListInUI('summary_equipment', inputs.checkboxes.equipment.map(id => gameData.components.equipment[id]?.name));
 }
 
 /**
@@ -159,6 +192,14 @@ export function updateProgress() {
 export function generateSheet() {
     const performanceData = updateCalculations();
     if (performanceData) {
+        // Passa a URL da imagem atual para a ficha
+        const aircraftImage = document.getElementById('aircraft_image');
+        if (aircraftImage) {
+            performanceData.aircraftImageSrc = aircraftImage.src;
+        }
+
+        // Gera os dados do gráfico aqui para que eles sejam salvos no localStorage
+        performanceData.performanceGraphData = generatePerformanceGraphData(performanceData);
         localStorage.setItem('aircraftSheetData', JSON.stringify(performanceData));
         localStorage.setItem('realWorldAircraftData', JSON.stringify(realWorldAircraft));
         window.open('ficha.html', '_blank');
@@ -183,29 +224,21 @@ export function generateSheet() {
 export function generatePerformanceGraphData(performanceData) {
     const { combatWeight, totalEnginePower, propData, aero, superchargerData, finalServiceCeiling, typeData } = performanceData;
     const data = [];
-    // Itera por altitudes em incrementos de 1000m até 15000m ou o teto de serviço
     for (let h = 0; h <= 15000; h += 1000) {
         let currentAlt = h;
-        // Se a altitude atual for maior que o teto de serviço, usa o teto de serviço para o cálculo
         if (h > finalServiceCeiling && finalServiceCeiling > 0) {
             currentAlt = finalServiceCeiling;
         }
-
         const perfPoint = calculatePerformanceAtAltitude(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData);
         let cappedSpeed = perfPoint.speed_kmh * aero.speed_mod;
-        // Limita a velocidade à máxima permitida para o tipo de aeronave
         if (typeData.limits && cappedSpeed > typeData.limits.max_speed) {
             cappedSpeed = typeData.limits.max_speed;
         }
-
         data.push({
             altitude: currentAlt,
-            // Velocidade e RoC são 0 acima do teto de serviço
             speed: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : cappedSpeed,
             roc: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : calculateRateOfClimb(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData)
         });
-
-        // Se o teto de serviço foi atingido ou ultrapassado, adiciona um ponto extra no teto exato e para
         if (h >= finalServiceCeiling && finalServiceCeiling > 0) {
             if (data[data.length -1].altitude !== finalServiceCeiling) {
                 data.push({
@@ -221,6 +254,21 @@ export function generatePerformanceGraphData(performanceData) {
 }
 
 /**
+ * Função auxiliar para encontrar um item de componente em diferentes categorias em gameData.components.
+ * Isso é útil porque os IDs dos checkboxes podem não mapear diretamente para suas chaves de categoria de nível superior.
+ * @param {string} id - O ID do componente a ser encontrado.
+ * @returns {object|null} - O objeto do componente se encontrado, caso contrário null.
+ */
+export function findItemAcrossCategories(id) {
+    for (const categoryKey in gameData.components) {
+        if (gameData.components[categoryKey][id]) {
+            return gameData.components[categoryKey][id];
+        }
+    }
+    return null;
+}
+
+/**
  * Atualiza a área de status e exibe avisos ou mensagens de sucesso.
  * @param {object} performance - O objeto de performance da aeronave.
  */
@@ -230,7 +278,7 @@ export function updateStatusAndWarnings(performance) {
 
     statusContainer.innerHTML = ''; // Limpa mensagens anteriores
     let warnings = [];
-    const { totalEnginePower, combatWeight, wingLoading, finalReliability, typeData, rawSpeedKmhAlt, rawRangeKm, finalSpeedKmhAlt, finalRangeKm } = performance;
+    const { totalEnginePower, combatWeight, wingLoading, finalReliability, typeData, rawSpeedKmhAlt, rawRangeKm } = performance;
     const powerToWeightRatio = (totalEnginePower * 745.7) / (combatWeight * gameData.constants.standard_gravity_ms2);
 
     // Adiciona avisos com base nas estatísticas
