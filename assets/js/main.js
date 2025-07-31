@@ -1,15 +1,10 @@
 // assets/js/main.js
 
+// Ajustado os caminhos de importação para serem relativos à pasta atual
 import { loadGameDataFromSheets } from './data.js';
 import { updateCalculations } from './calculations.js';
 import { toggleStep, generateSheet, createTemplateMenu, createUndoRedoButtons } from './ui.js';
 import { debounce, stateManager, templateManager, autoSaveManager, keyboardManager } from './managers.js';
-
-// As instâncias são importadas diretamente do managers.js, pois agora são exportadas com 'const'
-// const stateManager = new StateManager();
-// const templateManager = new TemplateManager();
-// const autoSaveManager = new AutoSaveManager();
-// const keyboardManager = new KeyboardManager();
 
 const debouncedUpdateCalculations = debounce(updateCalculations, 250);
 
@@ -26,17 +21,14 @@ window.onload = function() {
 
     // Cria os botões de templates e undo/redo
     createTemplateMenu(templateManager);
-    // Agora passa as instâncias corretas para a função
     createUndoRedoButtons(stateManager, keyboardManager);
 
     // Anexa event listeners a todos os campos de input e selects relevantes
     document.querySelectorAll('input, select').forEach(element => {
-        // Exclui 'aircraft_name' e 'quantity' do debounce para uma atualização mais imediata
         if (element.id !== 'aircraft_name' && element.id !== 'quantity') {
             element.addEventListener('input', debouncedUpdateCalculations);
-            element.addEventListener('change', debouncedUpdateCalculations); // Para selects
+            element.addEventListener('change', debouncedUpdateCalculations);
         } else {
-            // Para 'aircraft_name' e 'quantity', atualiza imediatamente (sem debounce)
             element.addEventListener('input', updateCalculations);
             element.addEventListener('change', updateCalculations);
         }
