@@ -39,8 +39,8 @@
                 <div class="relative bg-gray-100 rounded-xl overflow-hidden mb-3">
                     <img id="aircraft_image" src="https://placehold.co/400x250/5F9EA0/ffffff?text=AERONAVE" 
                          alt="Aeronave" class="w-full h-48">
-                    <button onclick="openImageSelector()" 
-                            class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors">
+                    <button class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
+                            id="open-image-selector-btn">
                         <i class="fas fa-camera text-sm"></i>
                     </button>
                 </div>
@@ -69,8 +69,7 @@
 
         <!-- Performance Chart Card -->
         <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-            <button onclick="toggleCard('performance_card')" 
-                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100">
+            <button class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100 toggle-card-btn" data-card="performance_card">
                 <div class="flex items-center">
                     <i class="fas fa-chart-line text-blue-600 mr-3"></i>
                     <span class="font-semibold text-gray-800">Gráfico de Performance</span>
@@ -88,8 +87,7 @@
 
         <!-- Stats Card -->
         <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-            <button onclick="toggleCard('stats_card')" 
-                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-green-50 to-green-100">
+            <button class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-green-50 to-green-100 toggle-card-btn" data-card="stats_card">
                 <div class="flex items-center">
                     <i class="fas fa-tachometer-alt text-green-600 mr-3"></i>
                     <span class="font-semibold text-gray-800">Estatísticas Completas</span>
@@ -130,8 +128,7 @@
 
         <!-- Armament Card -->
         <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-            <button onclick="toggleCard('armament_card')" 
-                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-red-50 to-red-100">
+            <button class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-red-50 to-red-100 toggle-card-btn" data-card="armament_card">
                 <div class="flex items-center">
                     <i class="fas fa-crosshairs text-red-600 mr-3"></i>
                     <span class="font-semibold text-gray-800">Armamentos</span>
@@ -154,8 +151,7 @@
 
         <!-- Design Details Card -->
         <div class="bg-white rounded-2xl shadow-lg mb-4 overflow-hidden">
-            <button onclick="toggleCard('design_card')" 
-                    class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-purple-50 to-purple-100">
+            <button class="w-full p-4 text-left flex items-center justify-between bg-gradient-to-r from-purple-50 to-purple-100 toggle-card-btn" data-card="design_card">
                 <div class="flex items-center">
                     <i class="fas fa-cog text-purple-600 mr-3"></i>
                     <span class="font-semibold text-gray-800">Detalhes do Projeto</span>
@@ -196,8 +192,7 @@
         <div class="grid grid-cols-2 gap-3 mb-20">
             <!-- Wings & Engine -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <button onclick="toggleCard('wings_engine_card')" 
-                        class="w-full p-3 text-left bg-gradient-to-r from-amber-50 to-amber-100">
+                <button class="w-full p-3 text-left bg-gradient-to-r from-amber-50 to-amber-100 toggle-card-btn" data-card="wings_engine_card">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <i class="fas fa-feather text-amber-600 mr-2 text-sm"></i>
@@ -222,8 +217,7 @@
 
             <!-- Protection & Cockpit -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                <button onclick="toggleCard('protection_cockpit_card')" 
-                        class="w-full p-3 text-left bg-gradient-to-r from-emerald-50 to-emerald-100">
+                <button class="w-full p-3 text-left bg-gradient-to-r from-emerald-50 to-emerald-100 toggle-card-btn" data-card="protection_cockpit_card">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <i class="fas fa-shield text-emerald-600 mr-2 text-sm"></i>
@@ -248,8 +242,7 @@
 
             <!-- Avionics & Equipment -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden col-span-2">
-                <button onclick="toggleCard('avionics_equipment_card')" 
-                        class="w-full p-3 text-left bg-gradient-to-r from-cyan-50 to-cyan-100">
+                <button class="w-full p-3 text-left bg-gradient-to-r from-cyan-50 to-cyan-100 toggle-card-btn" data-card="avionics_equipment_card">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <i class="fas fa-satellite-dish text-cyan-600 mr-2 text-sm"></i>
@@ -319,7 +312,8 @@
 
     <script type="module">
         import { gameData, realWorldAircraft } from './assets/js/data.js';
-
+        import { getAirPropertiesAtAltitude, calculateEnginePowerAtAltitude, calculatePerformanceAtAltitude, calculateRateOfClimb } from './assets/js/calculations.js';
+        
         let aircraftData = {};
         let performanceChart = null;
 
@@ -346,7 +340,7 @@
             if (aircraftDataString) {
                 aircraftData = JSON.parse(aircraftDataString);
                 populateSheet();
-                // createPerformanceChart();
+                createPerformanceChart();
             } else {
                 document.getElementById('aircraft_name').textContent = 'Dados não encontrados';
                 document.getElementById('aircraft_subtitle').textContent = 'Volte e gere a ficha novamente.';
@@ -357,13 +351,13 @@
             document.getElementById('save-as-png-btn').addEventListener('click', saveAsPNG);
             document.getElementById('apply-image-btn').addEventListener('click', applyImageSelection);
             document.getElementById('close-image-modal-btn').addEventListener('click', closeImageSelector);
-            document.querySelectorAll('[onclick^="toggleCard"]').forEach(button => {
+            document.querySelectorAll('.toggle-card-btn').forEach(button => {
                 button.addEventListener('click', () => {
-                    const cardId = button.getAttribute('onclick').match(/toggleCard\('(.+?)'\)/)[1];
+                    const cardId = button.getAttribute('data-card');
                     toggleCard(cardId);
                 });
             });
-            document.getElementById('aircraft_image').addEventListener('click', openImageSelector);
+            document.getElementById('open-image-selector-btn').addEventListener('click', openImageSelector);
         }
 
         function populateSheet() {
@@ -420,6 +414,8 @@
 
         function createPerformanceChart() {
             if (!aircraftData.performanceGraphData) {
+                // Se os dados do gráfico não existirem, gere-os usando as funções de cálculo
+                // Isso garante que o gráfico sempre terá dados, mesmo que o main.js não os tenha salvo explicitamente
                 aircraftData.performanceGraphData = generatePerformanceGraphData(aircraftData);
             }
 
@@ -464,6 +460,12 @@
         }
 
         function generatePerformanceGraphData(performanceData) {
+            // Verifica se as propriedades necessárias existem antes de tentar acessá-las
+            if (!performanceData.combatWeight || !performanceData.totalEnginePower || !performanceData.propData || !performanceData.aero || !performanceData.superchargerData || !performanceData.typeData) {
+                console.error("Dados incompletos para gerar o gráfico de performance.");
+                return [];
+            }
+            
             const { combatWeight, totalEnginePower, propData, aero, superchargerData, finalServiceCeiling, typeData } = performanceData;
             const data = [];
             for (let h = 0; h <= 15000; h += 1000) {
@@ -498,8 +500,10 @@
         function toggleCard(cardId) {
             const card = document.getElementById(cardId);
             const icon = document.getElementById(cardId + '_icon');
-            card.classList.toggle('expanded');
-            icon.classList.toggle('rotate-180');
+            if (card && icon) {
+                card.classList.toggle('expanded');
+                icon.classList.toggle('rotate-180');
+            }
         }
 
         function openImageSelector() {
@@ -534,11 +538,12 @@
             const downloadLayout = createDownloadLayout();
             document.body.appendChild(downloadLayout);
 
+            // Cria um canvas fora da tela para renderizar o gráfico
             const offscreenCanvas = document.createElement('canvas');
-            offscreenCanvas.width = 700; // Largura do gráfico
-            offscreenCanvas.height = 350; // Altura do gráfico
+            offscreenCanvas.width = 700; 
+            offscreenCanvas.height = 350; 
             const chartCtx = offscreenCanvas.getContext('2d');
-            
+
             const tempChart = new Chart(chartCtx, {
                 type: 'line',
                 data: {
@@ -587,16 +592,16 @@
                 html2canvas(downloadLayout, {
                     scale: 2, // High resolution for better quality
                     useCORS: true,
-                    backgroundColor: null // Transparent background to show the gradient
+                    backgroundColor: null
                 }).then(canvas => {
-                    document.body.removeChild(downloadLayout); // Remove temporary layout
-                    tempChart.destroy(); // Destrói o gráfico temporário
+                    document.body.removeChild(downloadLayout);
+                    tempChart.destroy();
                     const link = document.createElement('a');
                     link.download = `${aircraftData.inputs?.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                 });
-            }, 500); // Aumenta o delay para garantir que o gráfico seja renderizado
+            }, 500);
         }
 
         function createDownloadLayout() {
@@ -605,14 +610,14 @@
                 position: fixed;
                 top: -10000px;
                 left: -10000px;
-                width: 1200px; /* Largura para layout horizontal */
-                height: 800px; /* Altura para layout horizontal */
-                background: linear-gradient(135deg, #87CEEB 0%, #1E90FF 100%); /* Fundo gradiente */
+                width: 1200px;
+                height: 800px;
+                background: linear-gradient(135deg, #87CEEB 0%, #1E90FF 100%);
                 padding: 20px;
                 font-family: 'Inter', sans-serif;
                 box-sizing: border-box;
-                display: flex; /* Usar flexbox para o layout principal */
-                flex-direction: column; /* Colunas verticais */
+                display: flex;
+                flex-direction: column;
                 justify-content: space-between;
             `;
 
@@ -638,11 +643,11 @@
                                     <div style="color: #6b7280;">Custo</div>
                                 </div>
                                 <div style="background: #dcfce7; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="color: #059669; font-weight: 600;">${Math.round(aircraftData.finalSpeedKmhAlt).toLocaleString('pt-BR') || '0'} km/h</div>
+                                    <div style="color: #059669; font-weight: 600;">${Math.round(aircraftData.finalSpeedKmhAlt)?.toLocaleString('pt-BR') || '0'} km/h</div>
                                     <div style="color: #6b7280;">Vel. Máx</div>
                                 </div>
                                 <div style="background: #fae8ff; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="color: #9333ea; font-weight: 600;">${Math.round(aircraftData.totalEnginePower).toLocaleString('pt-BR') || '0'} HP</div>
+                                    <div style="color: #9333ea; font-weight: 600;">${Math.round(aircraftData.totalEnginePower)?.toLocaleString('pt-BR') || '0'} HP</div>
                                     <div style="color: #6b7280;">Potência</div>
                                 </div>
                                 <div style="background: #fed7aa; padding: 10px; border-radius: 8px; text-align: center;">
@@ -656,14 +661,14 @@
                         <div class="middle-section" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
                             <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Gráfico de Performance</h3>
-                                <canvas id="offscreenChart" width="700" height="350"></canvas>
+                                <div style="width: 100%; height: 100%;" id="chart-placeholder"></div>
                             </div>
                             <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; flex: 1;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">📈 Estatísticas Detalhadas</h3>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; font-size: 11px;">
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Peso:</span>
-                                        <span style="font-weight: 500;">${Math.round(aircraftData.combatWeight).toLocaleString('pt-BR') || '0'} kg</span>
+                                        <span style="font-weight: 500;">${Math.round(aircraftData.combatWeight)?.toLocaleString('pt-BR') || '0'} kg</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Subida:</span>
@@ -671,11 +676,11 @@
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Teto:</span>
-                                        <span style="font-weight: 500;">${Math.round(aircraftData.finalServiceCeiling).toLocaleString('pt-BR') || '0'} m</span>
+                                        <span style="font-weight: 500;">${Math.round(aircraftData.finalServiceCeiling)?.toLocaleString('pt-BR') || '0'} m</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Alcance:</span>
-                                        <span style="font-weight: 500;">${Math.round(aircraftData.finalRangeKm).toLocaleString('pt-BR') || '0'} km</span>
+                                        <span style="font-weight: 500;">${Math.round(aircraftData.finalRangeKm)?.toLocaleString('pt-BR') || '0'} km</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Manobra:</span>
