@@ -1,18 +1,19 @@
 // assets/js/calculations.js
 
-// Ajustado os caminhos de importação para a mesma pasta
-import { gameData, realWorldAircraft } from './data.js';
-import { updateUI, updateProgress, updateStatusAndWarnings } from './ui.js';
-import { stateManager, autoSaveManager } from './managers.js';
+// Importa gameData do arquivo data.js na mesma pasta
+import { gameData } from './data.js';
+// Importa funções de UI e managers
+import { updateUI, updateProgress } from './ui.js';
+import { stateManager } from './managers.js';
+
 
 // --- FUNÇÕES DE CÁLCULO AERODINÂMICO E DE PERFORMANCE ---
-
 /**
- * Calcula as propriedades do ar (densidade, temperatura, pressão) em uma dada altitude.
- * Utiliza o modelo da Atmosfera Padrão Internacional (ISA).
- * @param {number} altitude_m - Altitude em metros.
- * @returns {object} - Objeto contendo densidade (kg/m^3), temperatura (K) e pressão (Pa).
- */
+ * Calcula as propriedades do ar (densidade, temperatura, pressão) em uma dada altitude.
+ * Utiliza o modelo da Atmosfera Padrão Internacional (ISA).
+ * @param {number} altitude_m - Altitude em metros.
+ * @returns {object} - Objeto contendo densidade (kg/m^3), temperatura (K) e pressão (Pa).
+ */
 export function getAirPropertiesAtAltitude(h_m) {
     const h = Math.max(0, h_m); // Altitude não pode ser negativa
     const T0 = gameData.constants.temp_sea_level_k;
@@ -29,12 +30,12 @@ export function getAirPropertiesAtAltitude(h_m) {
 }
 
 /**
- * Calcula a potência do motor em uma dada altitude, considerando os efeitos do supercharger.
- * @param {number} basePower - Potência do motor ao nível do mar (HP).
- * @param {number} h - Altitude em metros.
- * @param {object} superchargerData - Dados do supercharger.
- * @returns {number} - Potência do motor ajustada em HP.
- */
+ * Calcula a potência do motor em uma dada altitude, considerando os efeitos do supercharger.
+ * @param {number} basePower - Potência do motor ao nível do mar (HP).
+ * @param {number} h - Altitude em metros.
+ * @param {object} superchargerData - Dados do supercharger.
+ * @returns {number} - Potência do motor ajustada em HP.
+ */
 export function calculateEnginePowerAtAltitude(basePower, h, superchargerData) {
     if (!superchargerData || superchargerData.name === "Nenhum") {
         const currentAltProps = getAirPropertiesAtAltitude(h);
@@ -53,61 +54,34 @@ export function calculateEnginePowerAtAltitude(basePower, h, superchargerData) {
 }
 
 /**
- * Calcula a performance da aeronave em uma dada altitude (velocidade, arrasto, empuxo).
- * @param {number} h - Altitude em metros.
- * @param {number} combatWeight - Peso total da aeronave em kg.
- * @param {number} totalEnginePower - Potência total do motor em HP.
- * @param {object} propData - Dados da hélice (eficiência).
- * @param {object} aero - Dados aerodinâmicos (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
- * @param {object} superchargerData - Dados do supercharger (rated_altitude_m).
- * @returns {object} - Objeto contendo velocidade (m/s, km/h), arrasto (N) e empuxo (N).
- */
+ * Calcula a performance da aeronave em uma dada altitude (velocidade, arrasto, empuxo).
+ * @param {number} h - Altitude em metros.
+ * @param {number} combatWeight - Peso total da aeronave em kg.
+ * @param {number} totalEnginePower - Potência total do motor em HP.
+ * @param {object} propData - Dados da hélice (eficiência).
+ * @param {object} aero - Dados aerodinâmicos (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
+ * @param {object} superchargerData - Dados do supercharger (rated_altitude_m).
+ * @returns {object} - Objeto contendo velocidade (m/s, km/h), arrasto (N) e empuxo (N).
+ */
 export function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower, propData, aero, superchargerData) {
     const airProps = getAirPropertiesAtAltitude(h);
     const powerAtAltitude = calculateEnginePowerAtAltitude(totalEnginePower, h, superchargerData) * aero.power_mod;
-    const powerWatts = powerAtAltitude * 745.7;
+    const powerWatts = powerAtAltitude * 745.7; // Converte HP para Watts
 
-    let v_ms = 150;
+    let v_ms = 150; // Chute inicial para velocidade em m/s
     let best_v_ms = v_ms;
     let min_diff = Infinity;
 
-    for (let current_v = 50; current_v <= 350; current_v += 1) {
+    // Iterar através de uma faixa de velocidades para encontrar a melhor correspondência onde empuxo ~ arrasto
+    // Isso é mais robusto do que o ajuste simples de +/- 5.
+    for (let current_v = 50; current_v <= 350; current_v += 1) { // Iterar de 50 m/s a 350 m/s (180 km/h a 1260 km/h)
         const CL = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * current_v * current_v * aero.wing_area_m2);
         const CDi = (CL * CL) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
         const speed_kmh_current = current_v * 3.6;
         const speed_penalty_factor = Math.pow(Math.max(0, speed_kmh_current - 400) / 200, 2);
-        const additional_drag_coefficient = 0.012 * speed_penalty_factor;
+        const additional_drag_coefficient = 0.005 * speed_penalty_factor;
 
-        let typeDragModifier = 1.0;
-        switch (aero.typeKey) {
-            case 'light_fighter':
-            case 'heavy_fighter':
-            case 'naval_fighter':
-                if (speed_kmh_current > 500) {
-                    typeDragModifier = 1.0 + Math.pow((speed_kmh_current - 500) / 200, 2) * 0.1;
-                }
-                break;
-            case 'cas':
-            case 'naval_cas':
-                if (h > 3000) {
-                    typeDragModifier = 1.0 + ((h - 3000) / 5000) * 0.1;
-                }
-                break;
-            case 'tactical_bomber':
-            case 'strategic_bomber':
-            case 'naval_bomber':
-                const weightToDrag = (combatWeight / gameData.components.aircraft_types[aero.typeKey].weight) * 0.05;
-                typeDragModifier = 1.0 + weightToDrag;
-                break;
-            case 'seaplane':
-                typeDragModifier = 1.15;
-                break;
-            case 'zeppelin':
-                typeDragModifier = 1.5;
-                break;
-        }
-
-        const CD = aero.cd_0 * aero.drag_mod * typeDragModifier + CDi + additional_drag_coefficient;
+        const CD = aero.cd_0 * aero.drag_mod + CDi + additional_drag_coefficient;
 
         const current_drag_force = 0.5 * airProps.density * current_v * current_v * aero.wing_area_m2 * CD;
         const current_thrust_force = (powerWatts * propData.efficiency) / Math.max(current_v, 1);
@@ -125,7 +99,7 @@ export function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower
     const CDi_final = (CL_final * CL_final) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
     const speed_kmh_final = v_ms * 3.6;
     const speed_penalty_factor_final = Math.pow(Math.max(0, speed_kmh_final - 400) / 200, 2);
-    const additional_drag_coefficient_final = 0.012 * speed_penalty_factor_final;
+    const additional_drag_coefficient_final = 0.005 * speed_penalty_factor_final;
 
     const CD_final = aero.cd_0 * aero.drag_mod + CDi_final + additional_drag_coefficient_final;
     const dragForce_final = 0.5 * airProps.density * v_ms * v_ms * aero.wing_area_m2 * CD_final;
@@ -135,15 +109,15 @@ export function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower
 }
 
 /**
- * Calcula a taxa de subida (RoC) em uma dada altitude.
- * @param {number} h - Altitude em metros.
- * @param {number} combatWeight - Peso total da aeronave em kg.
- * @param {number} totalEnginePower - Potência total do motor em HP.
- * @param {object} propData - Dados da hélice (eficiência).
- * @param {object} aero - Dados aerodinâmicos (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
- * @param {object} superchargerData - Dados do supercharger (rated_altitude_m).
- * @returns {number} - Taxa de subida em m/s.
- */
+ * Calcula a taxa de subida (RoC) em uma dada altitude.
+ * @param {number} h - Altitude em metros.
+ * @param {number} combatWeight - Peso total da aeronave em kg.
+ * @param {number} totalEnginePower - Potência total do motor em HP.
+ * @param {object} propData - Dados da hélice (eficiência).
+ * @param {object} aero - Dados aerodinâmicos (wing_area_m2, cd_0, aspect_ratio, oswald_efficiency, drag_mod, power_mod).
+ * @param {object} superchargerData - Dados do supercharger (rated_altitude_m).
+ * @returns {number} - Taxa de subida em m/s.
+ */
 export function calculateRateOfClimb(h, combatWeight, totalEnginePower, propData, aero, superchargerData) {
     const airProps = getAirPropertiesAtAltitude(h);
     const powerAtAltitude = calculateEnginePowerAtAltitude(totalEnginePower, h, superchargerData) * aero.power_mod;
@@ -158,7 +132,7 @@ export function calculateRateOfClimb(h, combatWeight, totalEnginePower, propData
 
     const speed_kmh_climb = climbSpeed_ms * 3.6;
     const speed_penalty_factor_climb = Math.pow(Math.max(0, speed_kmh_climb - 400) / 200, 2);
-    const additional_drag_coefficient_climb = 0.012 * speed_penalty_factor_climb;
+    const additional_drag_coefficient_climb = 0.005 * speed_penalty_factor_climb;
 
     const CD_climb = aero.cd_0 * aero.drag_mod + CDi_climb + additional_drag_coefficient_climb;
     const dragForce_climb = 0.5 * airProps.density * climbSpeed_ms * climbSpeed_ms * aero.wing_area_m2 * CD_climb;
@@ -170,10 +144,10 @@ export function calculateRateOfClimb(h, combatWeight, totalEnginePower, propData
 }
 
 /**
- * Função auxiliar para encontrar um item de componente em diferentes categorias em gameData.components.
- * @param {string} id - O ID do componente a ser encontrado.
- * @returns {object|null} - O objeto do componente se encontrado, caso contrário null.
- */
+ * Função auxiliar para encontrar um item de componente em diferentes categorias em gameData.components.
+ * @param {string} id - O ID do componente a ser encontrado.
+ * @returns {object|null} - O objeto do componente se encontrado, caso contrário null.
+ */
 export function findItemAcrossCategories(id) {
     for (const categoryKey in gameData.components) {
         if (gameData.components[categoryKey][id]) {
@@ -184,10 +158,10 @@ export function findItemAcrossCategories(id) {
 }
 
 /**
- * Coleta os inputs do formulário, calcula todas as estatísticas da aeronave
- * e atualiza a interface do usuário.
- * @returns {object|null} - Objeto com todos os dados de performance calculados, ou null se houver validação falha.
- */
+ * Coleta os inputs do formulário, calcula todas as estatísticas da aeronave
+ * e atualiza a interface do usuário.
+ * @returns {object|null} - Objeto com todos os dados de performance calculados, ou null se houver validação falha.
+ */
 export function updateCalculations() {
     const inputs = {
         aircraftName: document.getElementById('aircraft_name')?.value || 'Aeronave Sem Nome',
@@ -314,12 +288,13 @@ export function updateCalculations() {
         reliabilityModifier *= Math.pow(engineData.reliability, inputs.numEngines);
     }
     
-    const threshold = 1000;
-    if (totalEnginePower > threshold) {
-        const excess = totalEnginePower - threshold;
-        const penaltyFactor = 1 - Math.pow(excess / threshold, 2) * 0.25;
-        totalEnginePower = threshold + excess * Math.max(0, penaltyFactor);
-    }
+    // Removido o Diminishing Returns para voltar à versão original
+    // const threshold = 1000;
+    // if (totalEnginePower > threshold) {
+    //     const excess = totalEnginePower - threshold;
+    //     const penaltyFactor = 1 - Math.pow(excess / threshold, 2) * 0.25;
+    //     totalEnginePower = threshold + excess * Math.max(0, penaltyFactor);
+    // }
     
     aero.drag_mod *= engineData.frontal_area_mod || 1.0;
 
@@ -417,10 +392,11 @@ export function updateCalculations() {
     let rawSpeedKmhSL = perfSL.speed_kmh * aero.speed_mod;
     let rawSpeedKmhAlt = perfAlt.speed_kmh * aero.speed_mod;
     
-    if (typeData.limits && rawSpeedKmhAlt > typeData.limits.max_speed * 0.9) {
-        const overRatio = rawSpeedKmhAlt / typeData.limits.max_speed - 0.9;
-        rawSpeedKmhAlt *= 1 - (overRatio * 0.5);
-    }
+    // Removido o soft cap de velocidade para voltar à versão original
+    // if (typeData.limits && rawSpeedKmhAlt > typeData.limits.max_speed * 0.9) {
+    //     const overRatio = rawSpeedKmhAlt / typeData.limits.max_speed - 0.9;
+    //     rawSpeedKmhAlt *= 1 - (overRatio * 0.5);
+    // }
 
     const bsfc_kg_per_watt_s = (gameData.components.engines[inputs.engineType].bsfc_g_per_kwh / 1000) / 3.6e6;
     const optimal_CL = Math.sqrt(aero.cd_0 * Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
@@ -435,23 +411,24 @@ export function updateCalculations() {
     let finalSpeedKmhAlt = rawSpeedKmhAlt;
     let finalRangeKm = rawRangeKm / gameData.constants.range_balance_factor;
     
-    switch (inputs.aircraftType) {
-        case 'cas':
-        case 'naval_cas':
-            finalRangeKm *= 0.8;
-            break;
-        case 'naval_recon':
-            finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, 450);
-            break;
-        case 'seaplane':
-            finalSpeedKmhSL *= 0.92;
-            finalSpeedKmhAlt *= 0.92;
-            break;
-        case 'zeppelin':
-            finalSpeedKmhSL = Math.min(finalSpeedKmhSL, 130);
-            finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, 130);
-            break;
-    }
+    // Removido a lógica de ajuste de performance por tipo para voltar à versão original
+    // switch (inputs.aircraftType) {
+    //     case 'cas':
+    //     case 'naval_cas':
+    //         finalRangeKm *= 0.8;
+    //         break;
+    //     case 'naval_recon':
+    //         finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, 450);
+    //         break;
+    //     case 'seaplane':
+    //         finalSpeedKmhSL *= 0.92;
+    //         finalSpeedKmhAlt *= 0.92;
+    //         break;
+    //     case 'zeppelin':
+    //         finalSpeedKmhSL = Math.min(finalSpeedKmhSL, 130);
+    //         finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, 130);
+    //         break;
+    // }
 
     if (typeData.limits) {
         finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, typeData.limits.max_speed);
