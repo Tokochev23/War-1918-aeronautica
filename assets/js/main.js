@@ -3,10 +3,13 @@
 import { loadGameDataFromSheets } from './data.js';
 import { updateCalculations } from './calculations.js';
 import { toggleStep, generateSheet, createTemplateMenu, createUndoRedoButtons } from './ui.js';
-import { debounce, initializeManagers, stateManager, templateManager, autoSaveManager } from './managers.js';
+import { debounce, stateManager, templateManager, autoSaveManager, keyboardManager } from './managers.js';
 
-// Inicializa os gerenciadores (instâncias são criadas dentro de initializeManagers)
-initializeManagers();
+// As instâncias são importadas diretamente do managers.js, pois agora são exportadas com 'const'
+// const stateManager = new StateManager();
+// const templateManager = new TemplateManager();
+// const autoSaveManager = new AutoSaveManager();
+// const keyboardManager = new KeyboardManager();
 
 const debouncedUpdateCalculations = debounce(updateCalculations, 250);
 
@@ -23,7 +26,8 @@ window.onload = function() {
 
     // Cria os botões de templates e undo/redo
     createTemplateMenu(templateManager);
-    createUndoRedoButtons(stateManager, keyboardManager); // Passa a instância do keyboardManager
+    // Agora passa as instâncias corretas para a função
+    createUndoRedoButtons(stateManager, keyboardManager);
 
     // Anexa event listeners a todos os campos de input e selects relevantes
     document.querySelectorAll('input, select').forEach(element => {
@@ -38,16 +42,17 @@ window.onload = function() {
         }
     });
 
+    // Anexa event listeners aos cabeçalhos dos passos
+    document.querySelectorAll('.step-header').forEach(header => {
+        header.addEventListener('click', (event) => {
+            const step = parseInt(event.currentTarget.dataset.step);
+            toggleStep(step);
+        });
+    });
+
     // Event listener para o ícone de gerar ficha
     const generateSheetIcon = document.getElementById('generate-sheet-icon');
     if (generateSheetIcon) {
         generateSheetIcon.addEventListener('click', generateSheet);
     }
-
-    // Expõe funções globalmente se necessário para manipuladores de eventos HTML inline
-    // Embora não seja a melhor prática, é mantido para compatibilidade com o HTML existente.
-    window.toggleStep = toggleStep;
-    window.updateCalculations = updateCalculations;
-    window.generateSheet = generateSheet;
-    window.templateManager = templateManager; // Expõe para uso em onclick de templates
 };
