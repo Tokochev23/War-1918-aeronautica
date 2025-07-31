@@ -230,7 +230,7 @@
                             <span class="font-medium text-sm">Proteção & Cockpit</span>
                         </div>
                         <i class="fas fa-chevron-down text-xs transform transition-transform" id="protection_cockpit_card_icon"></i>
-                    </div>
+                    </div
                 </button>
                 <div id="protection_cockpit_card" class="card-collapse expanded"> <!-- Expanded by default -->
                     <div class="p-3 text-xs space-y-2">
@@ -278,7 +278,7 @@
 
     <!-- Floating Action Button -->
     <div class="floating-action">
-        <button onclick="saveAsPNG()" 
+        <button id="save-as-png-btn"
                 class="bg-green-500 text-white w-14 h-14 rounded-full shadow-2xl hover:bg-green-600 transition-transform hover:scale-110 flex items-center justify-center">
             <i class="fas fa-download text-lg"></i>
         </button>
@@ -305,11 +305,11 @@
             </div>
             
             <div class="flex gap-3 mt-6">
-                <button onclick="applyImageSelection()" 
+                <button id="apply-image-btn"
                         class="flex-1 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
                     Aplicar
                 </button>
-                <button onclick="closeImageSelector()" 
+                <button id="close-image-modal-btn"
                         class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors">
                     Cancelar
                 </button>
@@ -317,13 +317,17 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Caminhos de importação ajustados para a estrutura de pastas
+        import { getAirPropertiesAtAltitude, calculateEnginePowerAtAltitude, calculatePerformanceAtAltitude, calculateRateOfClimb } from './assets/js/calculations.js';
+        import { realWorldAircraft, gameData } from './assets/js/data.js';
+
         let aircraftData = {};
-        let realWorldAircraft = [];
-        let performanceChart = null;
+        let performanceChart = null; // Mantenha esta variável para a instância do Chart.js
 
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
+            setupEventListeners(); // Chama a nova função para configurar os listeners
         });
 
         function loadData() {
@@ -332,80 +336,90 @@
 
             if (realWorldAircraftString) {
                 try {
-                    realWorldAircraft = JSON.parse(realWorldAircraftString);
-                    populateAircraftSelect();
+                    const parsedRealWorldAircraft = JSON.parse(realWorldAircraftString);
+                    populateAircraftSelect(parsedRealWorldAircraft);
                 } catch (e) {
-                    console.error("Error parsing real world aircraft data from localStorage", e);
+                    console.error("Erro ao parsear dados de aeronaves reais do localStorage", e);
                 }
+            } else {
+                populateAircraftSelect(realWorldAircraft);
             }
 
             if (aircraftDataString) {
                 aircraftData = JSON.parse(aircraftDataString);
                 populateSheet();
-                // We no longer need to create the performance chart on the main view if it's not displayed
-                // createPerformanceChart(); 
+                createPerformanceChart(); // Cria o gráfico ao carregar a ficha
             } else {
                 document.getElementById('aircraft_name').textContent = 'Dados não encontrados';
                 document.getElementById('aircraft_subtitle').textContent = 'Volte e gere a ficha novamente.';
             }
         }
 
+        // Nova função para configurar os event listeners
+        function setupEventListeners() {
+            document.getElementById('save-as-png-btn').addEventListener('click', saveAsPNG);
+            document.getElementById('apply-image-btn').addEventListener('click', applyImageSelection);
+            document.getElementById('close-image-modal-btn').addEventListener('click', closeImageSelector);
+            document.getElementById('aircraft_image').addEventListener('click', openImageSelector); // Para abrir o modal clicando na imagem
+        }
+
         function populateSheet() {
             // Header
-            document.getElementById('aircraft_name').textContent = aircraftData.aircraftName || 'Nome da Aeronave';
-            document.getElementById('aircraft_subtitle').textContent = `${aircraftData.aircraftTypeName || 'Tipo'} - ${aircraftData.doctrineName || 'Doutrina'}`;
+            document.getElementById('aircraft_name').textContent = aircraftData.inputs?.aircraftName || 'Nome da Aeronave';
+            document.getElementById('aircraft_subtitle').textContent = `${aircraftData.typeData?.name || 'Tipo'} - ${aircraftData.inputs?.selectedAirDoctrine ? gameData.doctrines[aircraftData.inputs.selectedAirDoctrine]?.name : 'Doutrina'}`;
 
             // Quick stats
-            document.getElementById('unit_cost').textContent = aircraftData.finalUnitCost || '$0';
-            document.getElementById('max_speed').textContent = aircraftData.speedMax || '0 km/h';
-            document.getElementById('total_power').textContent = aircraftData.totalPower || '0 HP';
-            document.getElementById('reliability').textContent = aircraftData.reliability || '0%';
+            document.getElementById('unit_cost').textContent = aircraftData.adjustedUnitCost?.toLocaleString('pt-BR') || '$0';
+            document.getElementById('max_speed').textContent = `${Math.round(aircraftData.finalSpeedKmhAlt).toLocaleString('pt-BR')} km/h` || '0 km/h';
+            document.getElementById('total_power').textContent = `${Math.round(aircraftData.totalEnginePower).toLocaleString('pt-BR')} HP` || '0 HP';
+            document.getElementById('reliability').textContent = `${aircraftData.finalReliability?.toFixed(1)}%` || '0%';
 
             // Detailed stats
-            document.getElementById('total_weight').textContent = aircraftData.totalWeight || '0 kg';
-            document.getElementById('rate_of_climb').textContent = aircraftData.rateOfClimb || '0 m/s';
-            document.getElementById('service_ceiling').textContent = aircraftData.serviceCeiling || '0 m';
-            document.getElementById('max_range').textContent = aircraftData.maxRange || '0 km';
-            document.getElementById('turn_time').textContent = aircraftData.turnTime || '0s';
-            document.getElementById('num_crewmen').textContent = aircraftData.numCrewmen || '0';
+            document.getElementById('total_weight').textContent = `${Math.round(aircraftData.combatWeight).toLocaleString('pt-BR')} kg` || '0 kg';
+            document.getElementById('rate_of_climb').textContent = `${aircraftData.rate_of_climb_ms?.toFixed(1)} m/s` || '0 m/s';
+            document.getElementById('service_ceiling').textContent = `${Math.round(aircraftData.finalServiceCeiling).toLocaleString('pt-BR')} m` || '0 m';
+            document.getElementById('max_range').textContent = `${Math.round(aircraftData.finalRangeKm).toLocaleString('pt-BR')} km` || '0 km';
+            document.getElementById('turn_time').textContent = `${aircraftData.turn_time_s?.toFixed(1)}s` || '0s';
+            document.getElementById('num_crewmen').textContent = aircraftData.inputs?.numCrewmen || '0';
 
             // Armament
-            document.getElementById('offensive_armament').textContent = aircraftData.offensiveArmamentText || 'Nenhum';
-            document.getElementById('defensive_armament').textContent = aircraftData.defensiveArmamentTexts?.join(', ') || 'Nenhum';
+            document.getElementById('offensive_armament').textContent = aircraftData.offensiveArmamentTexts?.length > 0 ? aircraftData.offensiveArmamentTexts.join(', ') : 'Nenhum';
+            document.getElementById('defensive_armament').textContent = aircraftData.defensiveArmamentTexts?.length > 0 ? aircraftData.defensiveArmamentTexts.join(', ') : 'Nenhum';
 
             // Design details
-            document.getElementById('aircraft_type').textContent = aircraftData.aircraftTypeName || '-';
-            document.getElementById('structure_type').textContent = aircraftData.structureTypeName || '-';
-            document.getElementById('propeller_type').textContent = aircraftData.propellerTypeName || '-';
-            document.getElementById('cooling_system').textContent = aircraftData.coolingSystemName || '-';
-            document.getElementById('wing_type').textContent = aircraftData.wingTypeName || '-';
-            document.getElementById('landing_gear_type').textContent = aircraftData.landingGearTypeName || '-';
+            document.getElementById('aircraft_type').textContent = aircraftData.typeData?.name || '-';
+            document.getElementById('structure_type').textContent = aircraftData.inputs?.structureType ? gameData.components.structure_materials[aircraftData.inputs.structureType]?.name : '-';
+            document.getElementById('propeller_type').textContent = aircraftData.inputs?.propellerType ? gameData.components.propellers[aircraftData.inputs.propellerType]?.name : '-';
+            document.getElementById('cooling_system').textContent = aircraftData.inputs?.coolingSystem ? gameData.components.cooling_systems[aircraftData.inputs.coolingSystem]?.name : '-';
+            document.getElementById('wing_type').textContent = aircraftData.inputs?.wingType ? gameData.components.wing_types[aircraftData.inputs.wingType]?.name : '-';
+            document.getElementById('landing_gear_type').textContent = aircraftData.inputs?.landingGearType ? gameData.components.landing_gear_types[aircraftData.inputs.landingGearType]?.name : '-';
 
-            // Equipment lists
-            populateEquipmentList('wing_features', aircraftData.selectedWingFeatures);
-            populateEquipmentList('engine_enhancements', aircraftData.selectedEngineEnhancements);
-            populateEquipmentList('protection', aircraftData.selectedProtection);
-            populateEquipmentList('cockpit_comfort', aircraftData.selectedCockpitComfort);
-            populateEquipmentList('advanced_avionics', aircraftData.selectedAdvancedAvionics);
-            populateEquipmentList('equipment', aircraftData.selectedEquipment);
-            // Added maintainability_features to populate
-            populateEquipmentList('maintainability_features', aircraftData.selectedMaintainabilityFeatures);
+            // Equipment lists (usando os IDs dos checkboxes para buscar os nomes)
+            populateEquipmentList('wing_features', aircraftData.inputs?.checkboxes?.wing_features.map(id => gameData.components.wing_features[id]?.name));
+            populateEquipmentList('engine_enhancements', aircraftData.inputs?.checkboxes?.engine_enhancements.map(id => gameData.components.engine_enhancements[id]?.name));
+            populateEquipmentList('protection', aircraftData.inputs?.checkboxes?.protection.map(id => gameData.components.protection[id]?.name));
+            populateEquipmentList('cockpit_comfort', aircraftData.inputs?.checkboxes?.cockpit_comfort.map(id => gameData.components.cockpit_comfort[id]?.name));
+            populateEquipmentList('advanced_avionics', aircraftData.inputs?.checkboxes?.advanced_avionics.map(id => gameData.components.advanced_avionics[id]?.name));
+            populateEquipmentList('equipment', aircraftData.inputs?.checkboxes?.equipment.map(id => gameData.components.equipment[id]?.name));
+            // A feature de maintainability_features não está nos inputs do main.js, então será sempre 'Nenhum' ou vazia.
+            // Se você quiser que ela seja preenchida, precisa adicioná-la aos inputs do main.js
+            populateEquipmentList('maintainability_features', aircraftData.inputs?.checkboxes?.maintainability_features?.map(id => gameData.components.maintainability_features[id]?.name));
         }
 
         function populateEquipmentList(elementId, items) {
             const container = document.getElementById(elementId);
+            if (!container) return; // Adicionado para evitar erros se o elemento não existir
             container.innerHTML = ''; // Clear previous items
-            if (items && items.length > 0) {
-                container.innerHTML = items.map(item => `<div class="py-1 text-xs">• ${item}</div>`).join(''); // Added text-xs class
-            } else {
-                container.innerHTML = '<div class="text-gray-500 text-xs">Nenhum</div>'; // Added text-xs class
+            if (items && items.length > 0 && items.some(item => item !== undefined)) { // Verifica se há itens válidos
+                return items.filter(item => item !== undefined).map(item => `<div class="py-1 text-xs">• ${item}</div>`).join('');
             }
+            return '<div class="text-gray-500 text-xs">Nenhum</div>';
         }
 
-        function populateAircraftSelect() {
+        function populateAircraftSelect(aircraftList) {
             const select = document.getElementById('aircraft_select');
             select.innerHTML = '<option value="">Selecione...</option>'; // Clear and add default
-            realWorldAircraft.forEach(aircraft => {
+            aircraftList.forEach(aircraft => {
                 const option = document.createElement('option');
                 option.value = aircraft.id;
                 option.textContent = aircraft.name;
@@ -414,10 +428,11 @@
         }
 
         function createPerformanceChart() {
-            // This function is now only called when needed for the download layout
-            // It's not used for the on-screen display anymore based on the user's request.
-            // Keeping it here in case it's needed for other purposes or future changes.
-            if (!aircraftData.performanceGraphData) return;
+            if (!aircraftData.performanceGraphData) {
+                // Se os dados do gráfico não existirem, gere-os usando as funções de cálculo
+                // Isso garante que o gráfico sempre terá dados, mesmo que o main.js não os tenha salvo explicitamente
+                aircraftData.performanceGraphData = generatePerformanceGraphData(aircraftData);
+            }
 
             const ctx = document.getElementById('performanceChart').getContext('2d');
             
@@ -457,6 +472,47 @@
                     }
                 }
             });
+        }
+
+        // Re-implementação de generatePerformanceGraphData para ficha.html
+        function generatePerformanceGraphData(performanceData) {
+            const { combatWeight, totalEnginePower, propData, aero, superchargerData, finalServiceCeiling, typeData } = performanceData;
+            const data = [];
+            // Itera por altitudes em incrementos de 1000m até 15000m ou o teto de serviço
+            for (let h = 0; h <= 15000; h += 1000) {
+                let currentAlt = h;
+                // Se a altitude atual for maior que o teto de serviço, usa o teto de serviço para o cálculo
+                if (h > finalServiceCeiling && finalServiceCeiling > 0) {
+                    currentAlt = finalServiceCeiling;
+                }
+
+                const perfPoint = calculatePerformanceAtAltitude(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData);
+                let cappedSpeed = perfPoint.speed_kmh * aero.speed_mod;
+                // Limita a velocidade à máxima permitida para o tipo de aeronave
+                if (typeData.limits && cappedSpeed > typeData.limits.max_speed) {
+                    cappedSpeed = typeData.limits.max_speed;
+                }
+
+                data.push({
+                    altitude: currentAlt,
+                    // Velocidade e RoC são 0 acima do teto de serviço
+                    speed: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : cappedSpeed,
+                    roc: h > finalServiceCeiling && finalServiceCeiling > 0 ? 0 : calculateRateOfClimb(currentAlt, combatWeight, totalEnginePower, propData, aero, superchargerData)
+                });
+
+                // Se o teto de serviço foi atingido ou ultrapassado, adiciona um ponto extra no teto exato e para
+                if (h >= finalServiceCeiling && finalServiceCeiling > 0) {
+                    if (data[data.length -1].altitude !== finalServiceCeiling) {
+                        data.push({
+                            altitude: finalServiceCeiling,
+                            speed: Math.min(calculatePerformanceAtAltitude(finalServiceCeiling, combatWeight, totalEnginePower, propData, aero, superchargerData).speed_kmh * aero.speed_mod, typeData.limits.max_speed),
+                            roc: 0
+                        });
+                    }
+                    break;
+                }
+            }
+            return data;
         }
 
         function toggleCard(cardId) {
@@ -508,7 +564,7 @@
                     document.body.removeChild(downloadLayout); // Remove temporary layout
 
                     const link = document.createElement('a');
-                    link.download = `${aircraftData.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
+                    link.download = `${aircraftData.inputs?.aircraftName?.replace(/ /g, '_') || 'aeronave'}_ficha.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                 });
@@ -537,8 +593,8 @@
                 <div style="background: white; border-radius: 15px; padding: 20px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
                     <!-- Header -->
                     <div style="background: linear-gradient(45deg, #4682B4, #5F9EA0); color: white; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
-                        <h1 style="font-size: 28px; margin: 0 0 5px 0; font-weight: bold;">${aircraftData.aircraftName || 'Nome da Aeronave'}</h1>
-                        <p style="font-size: 16px; margin: 0; opacity: 0.9;">${aircraftData.aircraftTypeName || 'Tipo'} - ${aircraftData.doctrineName || 'Doutrina'}</p>
+                        <h1 style="font-size: 28px; margin: 0 0 5px 0; font-weight: bold;">${aircraftData.inputs?.aircraftName || 'Nome da Aeronave'}</h1>
+                        <p style="font-size: 16px; margin: 0; opacity: 0.9;">${aircraftData.typeData?.name || 'Tipo'} - ${aircraftData.inputs?.selectedAirDoctrine ? gameData.doctrines[aircraftData.inputs.selectedAirDoctrine]?.name : 'Doutrina'}</p>
                     </div>
 
                     <!-- Main Content - Horizontal Sections -->
@@ -550,19 +606,19 @@
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
                                 <div style="background: #dbeafe; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="color: #1d4ed8; font-weight: 600;">${aircraftData.finalUnitCost || '$0'}</div>
+                                    <div style="color: #1d4ed8; font-weight: 600;">${aircraftData.adjustedUnitCost?.toLocaleString('pt-BR') || '$0'}</div>
                                     <div style="color: #6b7280;">Custo</div>
                                 </div>
                                 <div style="background: #dcfce7; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="color: #059669; font-weight: 600;">${aircraftData.speedMax || '0 km/h'}</div>
+                                    <div style="color: #059669; font-weight: 600;">${Math.round(aircraftData.finalSpeedKmhAlt).toLocaleString('pt-BR') || '0'} km/h</div>
                                     <div style="color: #6b7280;">Vel. Máx</div>
                                 </div>
                                 <div style="background: #fae8ff; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="color: #9333ea; font-weight: 600;">${aircraftData.totalPower || '0 HP'}</div>
+                                    <div style="color: #9333ea; font-weight: 600;">${Math.round(aircraftData.totalEnginePower).toLocaleString('pt-BR') || '0'} HP</div>
                                     <div style="color: #6b7280;">Potência</div>
                                 </div>
                                 <div style="background: #fed7aa; padding: 10px; border-radius: 8px; text-align: center;">
-                                    <div style="color: #ea580c; font-weight: 600;">${aircraftData.reliability || '0%'}</div>
+                                    <div style="color: #ea580c; font-weight: 600;">${aircraftData.finalReliability?.toFixed(1) || '0'}%</div>
                                     <div style="color: #6b7280;">Confiabilidade</div>
                                 </div>
                             </div>
@@ -575,27 +631,27 @@
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; font-size: 11px;">
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Peso:</span>
-                                        <span style="font-weight: 500;">${aircraftData.totalWeight || '0 kg'}</span>
+                                        <span style="font-weight: 500;">${Math.round(aircraftData.combatWeight).toLocaleString('pt-BR') || '0'} kg</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Subida:</span>
-                                        <span style="font-weight: 500;">${aircraftData.rateOfClimb || '0 m/s'}</span>
+                                        <span style="font-weight: 500;">${aircraftData.rate_of_climb_ms?.toFixed(1) || '0'} m/s</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Teto:</span>
-                                        <span style="font-weight: 500;">${aircraftData.serviceCeiling || '0 m'}</span>
+                                        <span style="font-weight: 500;">${Math.round(aircraftData.finalServiceCeiling).toLocaleString('pt-BR') || '0'} m</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Alcance:</span>
-                                        <span style="font-weight: 500;">${aircraftData.maxRange || '0 km'}</span>
+                                        <span style="font-weight: 500;">${Math.round(aircraftData.finalRangeKm).toLocaleString('pt-BR') || '0'} km</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Manobra:</span>
-                                        <span style="font-weight: 500;">${aircraftData.turnTime || '0s'}</span>
+                                        <span style="font-weight: 500;">${aircraftData.turn_time_s?.toFixed(1) || '0'}s</span>
                                     </div>
                                     <div style="background: white; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
                                         <span style="color: #6b7280;">Tripulação:</span>
-                                        <span style="font-weight: 500;">${aircraftData.numCrewmen || '0'}</span>
+                                        <span style="font-weight: 500;">${aircraftData.inputs?.numCrewmen || '0'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -607,64 +663,64 @@
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">🎯 Armamentos</h3>
                                 <div style="margin-bottom: 8px;">
                                     <span style="font-weight: 600; color: #6b7280;">Ofensivo:</span>
-                                    <div style="margin-top: 2px;">${aircraftData.offensiveArmamentText || 'Nenhum'}</div>
+                                    <div style="margin-top: 2px;">${aircraftData.offensiveArmamentTexts?.length > 0 ? aircraftData.offensiveArmamentTexts.join(', ') : 'Nenhum'}</div>
                                 </div>
                                 <div>
                                     <span style="font-weight: 600; color: #6b7280;">Defensivo:</span>
-                                    <div style="margin-top: 2px;">${aircraftData.defensiveArmamentTexts?.join(', ') || 'Nenhum'}</div>
+                                    <div style="margin-top: 2px;">${aircraftData.defensiveArmamentTexts?.length > 0 ? aircraftData.defensiveArmamentTexts.join(', ') : 'Nenhum'}</div>
                                 </div>
                             </div>
                             <div style="background: #f3f4f6; border-radius: 10px; padding: 15px; flex: 1;">
                                 <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #374151;">⚙️ Projeto & Equipamentos</h3>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
                                     <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
-                                        <span style="font-weight: 600; color: #6b7280;">Tipo:</span> ${aircraftData.aircraftTypeName || '-'}
+                                        <span style="font-weight: 600; color: #6b7280;">Tipo:</span> ${aircraftData.typeData?.name || '-'}
                                     </div>
                                     <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
-                                        <span style="font-weight: 600; color: #6b7280;">Estrutura:</span> ${aircraftData.structureTypeName || '-'}
+                                        <span style="font-weight: 600; color: #6b7280;">Estrutura:</span> ${aircraftData.inputs?.structureType ? gameData.components.structure_materials[aircraftData.inputs.structureType]?.name : '-'}
                                     </div>
                                     <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
-                                        <span style="font-weight: 600; color: #6b7280;">Hélice:</span> ${aircraftData.propellerTypeName || '-'}
+                                        <span style="font-weight: 600; color: #6b7280;">Hélice:</span> ${aircraftData.inputs?.propellerType ? gameData.components.propellers[aircraftData.inputs.propellerType]?.name : '-'}
                                     </div>
                                     <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
-                                        <span style="font-weight: 600; color: #6b7280;">Refrigeração:</span> ${aircraftData.coolingSystemName || '-'}
+                                        <span style="font-weight: 600; color: #6b7280;">Refrigeração:</span> ${aircraftData.inputs?.coolingSystem ? gameData.components.cooling_systems[aircraftData.inputs.coolingSystem]?.name : '-'}
                                     </div>
                                     <div style="border-bottom: 1px solid #e5e7eb; padding-bottom: 4px;">
-                                        <span style="font-weight: 600; color: #6b7280;">Asa:</span> ${aircraftData.wingTypeName || '-'}
+                                        <span style="font-weight: 600; color: #6b7280;">Asa:</span> ${aircraftData.inputs?.wingType ? gameData.components.wing_types[aircraftData.inputs.wingType]?.name : '-'}
                                     </div>
                                     <div style="padding-bottom: 4px;">
-                                        <span style="font-weight: 600; color: #6b7280;">Trem de Pouso:</span> ${aircraftData.landingGearTypeName || '-'}
+                                        <span style="font-weight: 600; color: #6b7280;">Trem de Pouso:</span> ${aircraftData.inputs?.landingGearType ? gameData.components.landing_gear_types[aircraftData.inputs.landingGearType]?.name : '-'}
                                     </div>
                                 </div>
                                 
                                 <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                     <div>
                                         <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🪶 Asas:</div>
-                                        ${getEquipmentListHTML(aircraftData.selectedWingFeatures)}
+                                        ${getEquipmentListHTML(aircraftData.inputs?.checkboxes?.wing_features?.map(id => gameData.components.wing_features[id]?.name))}
                                     </div>
                                     <div>
                                         <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🔧 Motor:</div>
-                                        ${getEquipmentListHTML(aircraftData.selectedEngineEnhancements)}
+                                        ${getEquipmentListHTML(aircraftData.inputs?.checkboxes?.engine_enhancements?.map(id => gameData.components.engine_enhancements[id]?.name))}
                                     </div>
                                     <div>
                                         <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🛡️ Proteção:</div>
-                                        ${getEquipmentListHTML(aircraftData.selectedProtection)}
+                                        ${getEquipmentListHTML(aircraftData.inputs?.checkboxes?.protection?.map(id => gameData.components.protection[id]?.name))}
                                     </div>
                                     <div>
                                         <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🪑 Cockpit:</div>
-                                        ${getEquipmentListHTML(aircraftData.selectedCockpitComfort)}
+                                        ${getEquipmentListHTML(aircraftData.inputs?.checkboxes?.cockpit_comfort?.map(id => gameData.components.cockpit_comfort[id]?.name))}
                                     </div>
                                     <div>
                                         <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">📡 Aviônicos:</div>
-                                        ${getEquipmentListHTML(aircraftData.selectedAdvancedAvionics)}
+                                        ${getEquipmentListHTML(aircraftData.inputs?.checkboxes?.advanced_avionics?.map(id => gameData.components.advanced_avionics[id]?.name))}
                                     </div>
                                     <div>
                                         <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">🛠️ Equipamentos:</div>
-                                        ${getEquipmentListHTML(aircraftData.selectedEquipment)}
+                                        ${getEquipmentListHTML(aircraftData.inputs?.checkboxes?.equipment?.map(id => gameData.components.equipment[id]?.name))}
                                     </div>
                                     <div>
                                         <div style="font-weight: 600; color: #6b7280; margin-bottom: 4px;">⚙️ Manutenção:</div>
-                                        ${getEquipmentListHTML(aircraftData.selectedMaintainabilityFeatures)}
+                                        ${getEquipmentListHTML(aircraftData.inputs?.checkboxes?.maintainability_features?.map(id => gameData.components.maintainability_features[id]?.name))}
                                     </div>
                                 </div>
                             </div>
@@ -681,8 +737,8 @@
         }
 
         function getEquipmentListHTML(items) {
-            if (items && items.length > 0) {
-                return items.map(item => `<div style="font-size: 10px; margin-bottom: 2px;">• ${item}</div>`).join('');
+            if (items && items.length > 0 && items.some(item => item !== undefined)) { // Verifica se há itens válidos
+                return items.filter(item => item !== undefined).map(item => `<div style="font-size: 10px; margin-bottom: 2px;">• ${item}</div>`).join('');
             }
             return '<div style="font-size: 10px; color: #9ca3af;">Nenhum</div>';
         }
