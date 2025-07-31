@@ -76,15 +76,42 @@ export function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower
         const CL = (combatWeight * gameData.constants.standard_gravity_ms2) / (0.5 * airProps.density * current_v * current_v * aero.wing_area_m2);
         const CDi = (CL * CL) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
 
-        // Introduzir penalidade de arrasto dependente da velocidade (efeitos de compressibilidade simplificados)
-        // Esta penalidade aumenta quadraticamente com a velocidade, tornando-se mais significativa em velocidades mais altas.
+        // Aumentar o coeficiente de penalidade de compressibilidade
         const speed_kmh_current = current_v * 3.6;
-        // O fator 0.005 e o limiar de 400 km/h são ajustáveis para afinar o modelo.
-        // Se as velocidades ainda estiverem muito altas, aumente 0.005. Se ficarem muito baixas, diminua.
-        const speed_penalty_factor = Math.pow(Math.max(0, speed_kmh_current - 400) / 200, 2); // Penalidade começa a partir de 400 km/h, acentuada após 600 km/h
-        const additional_drag_coefficient = 0.005 * speed_penalty_factor;
+        const speed_penalty_factor = Math.pow(Math.max(0, speed_kmh_current - 400) / 200, 2);
+        const additional_drag_coefficient = 0.012 * speed_penalty_factor; // Penalidade de compressibilidade mais forte
 
-        const CD = aero.cd_0 * aero.drag_mod + CDi + additional_drag_coefficient;
+        // NOVO: Lógica de arrasto por tipo de aeronave
+        let typeDragModifier = 1.0;
+        switch (aero.typeKey) {
+            case 'light_fighter':
+            case 'heavy_fighter':
+            case 'naval_fighter':
+                if (speed_kmh_current > 500) {
+                    typeDragModifier = 1.0 + Math.pow((speed_kmh_current - 500) / 200, 2) * 0.1;
+                }
+                break;
+            case 'cas':
+            case 'naval_cas':
+                if (h > 3000) {
+                    typeDragModifier = 1.0 + ((h - 3000) / 5000) * 0.1;
+                }
+                break;
+            case 'tactical_bomber':
+            case 'strategic_bomber':
+            case 'naval_bomber':
+                const weightToDrag = (combatWeight / gameData.components.aircraft_types[aero.typeKey].weight) * 0.05;
+                typeDragModifier = 1.0 + weightToDrag;
+                break;
+            case 'seaplane':
+                typeDragModifier = 1.15; // +15% de arrasto
+                break;
+            case 'zeppelin':
+                typeDragModifier = 1.5; // Muito mais arrasto para Zeppelins
+                break;
+        }
+
+        const CD = aero.cd_0 * aero.drag_mod * typeDragModifier + CDi + additional_drag_coefficient;
 
         const current_drag_force = 0.5 * airProps.density * current_v * current_v * aero.wing_area_m2 * CD;
         const current_thrust_force = (powerWatts * propData.efficiency) / Math.max(current_v, 1); // Evitar divisão por zero
@@ -103,7 +130,7 @@ export function calculatePerformanceAtAltitude(h, combatWeight, totalEnginePower
     const CDi_final = (CL_final * CL_final) / (Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
     const speed_kmh_final = v_ms * 3.6;
     const speed_penalty_factor_final = Math.pow(Math.max(0, speed_kmh_final - 400) / 200, 2);
-    const additional_drag_coefficient_final = 0.005 * speed_penalty_factor_final;
+    const additional_drag_coefficient_final = 0.012 * speed_penalty_factor_final;
 
     const CD_final = aero.cd_0 * aero.drag_mod + CDi_final + additional_drag_coefficient_final;
     const dragForce_final = 0.5 * airProps.density * v_ms * v_ms * aero.wing_area_m2 * CD_final;
@@ -137,7 +164,7 @@ export function calculateRateOfClimb(h, combatWeight, totalEnginePower, propData
     // Aplicar a mesma penalidade de arrasto dependente da velocidade para a subida
     const speed_kmh_climb = climbSpeed_ms * 3.6;
     const speed_penalty_factor_climb = Math.pow(Math.max(0, speed_kmh_climb - 400) / 200, 2);
-    const additional_drag_coefficient_climb = 0.005 * speed_penalty_factor_climb;
+    const additional_drag_coefficient_climb = 0.012 * speed_penalty_factor_climb; // Penalidade de compressibilidade mais forte na subida
 
     const CD_climb = aero.cd_0 * aero.drag_mod + CDi_climb + additional_drag_coefficient_climb;
     const dragForce_climb = 0.5 * airProps.density * climbSpeed_ms * climbSpeed_ms * aero.wing_area_m2 * CD_climb;
@@ -190,7 +217,6 @@ export function updateCalculations() {
         productionQualitySliderValue: parseInt(document.getElementById('production_quality_slider')?.value) || 50,
         defensiveTurretType: document.getElementById('defensive_turret_type')?.value,
         checkboxes: {
-            // Mapeia os IDs dos checkboxes marcados por seção
             wing_features: Array.from(document.querySelectorAll('#wing_features_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
             engine_enhancements: Array.from(document.querySelectorAll('#engine_enhancements_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
             protection: Array.from(document.querySelectorAll('#protection_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
@@ -200,9 +226,7 @@ export function updateCalculations() {
             maintainability_features: Array.from(document.querySelectorAll('#maintainability_features_checkboxes input[type="checkbox"]:checked')).map(cb => cb.id),
         },
         armaments: {
-            // Mapeia os armamentos ofensivos e suas quantidades
             offensive: Array.from(document.querySelectorAll('#offensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 })),
-            // Mapeia os armamentos defensivos e suas quantidades
             defensive: Array.from(document.querySelectorAll('#defensive_armaments input[type="number"]')).map(i => ({ id: i.id, qty: parseInt(i.value) || 0 }))
         }
     };
@@ -244,6 +268,7 @@ export function updateCalculations() {
     let totalEmptyWeight = typeData.weight;
     let reliabilityModifier = typeData.reliability_base; // Começa com a confiabilidade base do tipo de aeronave
     let aero = {
+        typeKey: inputs.aircraftType, // NOVO: Chave do tipo de aeronave para a lógica condicional
         wing_area_m2: typeData.wing_area_m2,
         cl_max: typeData.cl_max,
         cd_0: typeData.cd_0,
@@ -303,6 +328,17 @@ export function updateCalculations() {
         totalEmptyWeight += engineData.weight * inputs.numEngines;
         reliabilityModifier *= Math.pow(engineData.reliability, inputs.numEngines);
     }
+    
+    // NOVO: Aplicar Diminishing Returns na potência total
+    const threshold = 1000;
+    if (totalEnginePower > threshold) {
+        const excess = totalEnginePower - threshold;
+        const penaltyFactor = 1 - Math.pow(excess / threshold, 2) * 0.25;
+        totalEnginePower = threshold + excess * Math.max(0, penaltyFactor);
+    }
+    
+    // NOVO: Aplicar arrasto de área frontal do motor
+    aero.drag_mod *= engineData.frontal_area_mod || 1.0;
 
     baseUnitCost += propData.cost * inputs.numEngines;
     totalEmptyWeight += propData.weight * inputs.numEngines;
@@ -321,7 +357,6 @@ export function updateCalculations() {
     // Processa todos os componentes baseados em checkboxes
     for (const categoryKey in inputs.checkboxes) {
         inputs.checkboxes[categoryKey].forEach(id => {
-            // Usa findItemAcrossCategories para obter corretamente os dados de gameData.components
             const item = findItemAcrossCategories(id);
             if(item) {
                 baseUnitCost += item.cost || 0;
@@ -385,14 +420,11 @@ export function updateCalculations() {
     const qualityBias = (100 - inputs.productionQualitySliderValue) / 100;
     const productionBias = inputs.productionQualitySliderValue / 100;
 
-    // Custo aumenta com a qualidade (qualityBias) e diminui com a produção (productionBias)
     baseUnitCost *= (1 + (qualityBias * 0.20) - (productionBias * 0.20));
 
-    // Aplica o bônus de confiabilidade de 20% UMA VEZ no final
-    reliabilityModifier *= 1.20; // Aumenta a confiabilidade total em 20%
-    reliabilityModifier *= (1 + (qualityBias * 0.15) - (productionBias * 0.15)); // Aplica o bias do slider
+    reliabilityModifier *= 1.20;
+    reliabilityModifier *= (1 + (qualityBias * 0.15) - (productionBias * 0.15));
 
-    // Redução de custo do país
     const countryData = gameData.countries[inputs.selectedCountryName];
     let countryCostReduction = 0;
     if (countryData) {
@@ -400,37 +432,63 @@ export function updateCalculations() {
         const urbanizationReduction = (countryData.urbanization / gameData.constants.max_urbanization_level) * gameData.constants.urbanization_cost_reduction_factor;
         countryCostReduction = Math.min(0.75, civilTechReduction + urbanizationReduction);
     }
-    const finalUnitCost = baseUnitCost * (1 - countryCostReduction); // <-- CORREÇÃO AQUI: Define finalUnitCost
+    const finalUnitCost = baseUnitCost * (1 - countryCostReduction);
 
     // --- CÁLCULOS DE PERFORMANCE ---
     const perfSL = calculatePerformanceAtAltitude(0, combatWeight, totalEnginePower, propData, aero, superchargerData);
     const perfAlt = calculatePerformanceAtAltitude(superchargerData.rated_altitude_m, combatWeight, totalEnginePower, propData, aero, superchargerData);
 
-    // Valores calculados brutos
     let rawSpeedKmhSL = perfSL.speed_kmh * aero.speed_mod;
     let rawSpeedKmhAlt = perfAlt.speed_kmh * aero.speed_mod;
+    
+    // NOVO: Soft Cap de velocidade
+    if (typeData.limits && rawSpeedKmhAlt > typeData.limits.max_speed * 0.9) {
+        const overRatio = rawSpeedKmhAlt / typeData.limits.max_speed - 0.9;
+        rawSpeedKmhAlt *= 1 - (overRatio * 0.5);
+    }
+
     const bsfc_kg_per_watt_s = (gameData.components.engines[inputs.engineType].bsfc_g_per_kwh / 1000) / 3.6e6;
     const optimal_CL = Math.sqrt(aero.cd_0 * Math.PI * aero.aspect_ratio * aero.oswald_efficiency);
-    const optimal_CD = aero.cd_0 * 2; // Isso pode ser simplificado, geralmente CD_induced = CD_0 para max L/D
-    const L_D_ratio = optimal_CD > 0 ? optimal_CL / optimal_CD : 10; // Evita divisão por zero
+    const optimal_CD = aero.cd_0 * 2;
+    const L_D_ratio = optimal_CD > 0 ? optimal_CL / optimal_CD : 10;
     const range_m = (propData.efficiency / (gameData.constants.standard_gravity_ms2 * bsfc_kg_per_watt_s)) * L_D_ratio * Math.log(combatWeight / (combatWeight - fuelWeight));
     let rawRangeKm = (range_m / 1000) * aero.range_mod;
 
-    const rate_of_climb_ms = calculateRateOfClimb(0, combatWeight, totalEnginePower, propData, aero, superchargerData); // Calcula RoC ao nível do mar
+    const rate_of_climb_ms = calculateRateOfClimb(0, combatWeight, totalEnginePower, propData, aero, superchargerData);
 
-    // --- APLICAR LIMITES DE PERFORMANCE (CAPPING) ---
     let finalSpeedKmhSL = rawSpeedKmhSL;
     let finalSpeedKmhAlt = rawSpeedKmhAlt;
-    // Aplica o fator de balanço ao alcance
     let finalRangeKm = rawRangeKm / gameData.constants.range_balance_factor;
+    
+    // NOVO: Lógica de ajuste de performance por tipo
+    switch (inputs.aircraftType) {
+        case 'cas':
+        case 'naval_cas':
+            // Penalidade de alcance
+            finalRangeKm *= 0.8;
+            break;
+        case 'naval_recon':
+            // Cap de velocidade rígido
+            finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, 450);
+            break;
+        case 'seaplane':
+            // Redução de velocidade base
+            finalSpeedKmhSL *= 0.92;
+            finalSpeedKmhAlt *= 0.92;
+            break;
+        case 'zeppelin':
+            // Velocidade fixa e cap
+            finalSpeedKmhSL = Math.min(finalSpeedKmhSL, 130);
+            finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, 130);
+            break;
+    }
 
     if (typeData.limits) {
         finalSpeedKmhAlt = Math.min(finalSpeedKmhAlt, typeData.limits.max_speed);
-        finalSpeedKmhSL = Math.min(finalSpeedKmhSL, typeData.limits.max_speed); // Também limita a velocidade SL
+        finalSpeedKmhSL = Math.min(finalSpeedKmhSL, typeData.limits.max_speed);
         finalRangeKm = Math.min(finalRangeKm, typeData.limits.max_range);
     }
-
-    // Teto de Serviço
+    
     let serviceCeiling = 0;
     for (let h = 0; h <= 15000; h += 250) {
         const currentROC = calculateRateOfClimb(h, combatWeight, totalEnginePower, propData, aero, superchargerData);
@@ -438,36 +496,32 @@ export function updateCalculations() {
             serviceCeiling = h;
             break;
         }
-        if (h === 15000) serviceCeiling = h; // Se atingir o limite, define o teto como o limite
+        if (h === 15000) serviceCeiling = h;
     }
     let finalServiceCeiling = serviceCeiling * aero.ceiling_mod;
-    // Limita o teto de serviço com base nos sistemas de cabine
     if (!inputs.checkboxes.cockpit_comfort.includes('pressurized_cabin') && finalServiceCeiling > 10000) finalServiceCeiling = 10000;
     if (!inputs.checkboxes.cockpit_comfort.includes('oxygen_system') && finalServiceCeiling > 5000) finalServiceCeiling = 5000;
 
-    // Manobrabilidade
     const wingLoading = combatWeight / aero.wing_area_m2;
-    const v_turn = perfAlt.v_ms * 0.8; // Usa velocidade na altitude ótima para cálculos de curva
+    const v_turn = perfAlt.v_ms * 0.8;
     const max_load_factor = Math.min(gameData.constants.turn_g_force, (0.5 * getAirPropertiesAtAltitude(2000).density * v_turn * v_turn * aero.cl_max) / wingLoading);
     const turn_radius = (v_turn * v_turn) / (gameData.constants.standard_gravity_ms2 * Math.sqrt(Math.max(0.01, max_load_factor * max_load_factor - 1)));
     let turn_time_s = (2 * Math.PI * turn_radius) / v_turn;
     turn_time_s /= aero.maneuverability_mod;
-    turn_time_s = Math.max(12, Math.min(60, turn_time_s)); // Limita o tempo de curva entre 12 e 60 segundos
+    turn_time_s = Math.max(12, Math.min(60, turn_time_s));
 
     const finalReliability = Math.max(5, Math.min(100, 100 * reliabilityModifier));
 
-    // --- ATUALIZAÇÃO DA UI ---
     const calculatedPerformance = {
         inputs, adjustedUnitCost: finalUnitCost, baseMetalCost, combatWeight, totalEnginePower,
         finalSpeedKmhSL, finalSpeedKmhAlt, rate_of_climb_ms, finalServiceCeiling, finalRangeKm, turn_time_s,
         finalReliability, offensiveArmamentTexts, defensiveArmamentTexts,
         countryData, wingLoading, typeData, rawSpeedKmhAlt, rawRangeKm, superchargerData, aero, propData,
-        countryCostReduction: countryCostReduction // Inclui a redução de custo do país aqui
+        countryCostReduction,
+        performanceGraphData: null // Inicia como null, será preenchido em generateSheet
     };
     updateUI(calculatedPerformance);
-
-    // Salva o estado para undo/redo
-    stateManager.saveState(inputs); // Salva os inputs brutos para restauração precisa
+    stateManager.saveState(inputs);
 
     return calculatedPerformance;
 }
