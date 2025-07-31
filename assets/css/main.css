@@ -37,11 +37,12 @@ body {
     border: 1px solid #e5e7eb;
 }
 
+/* Removendo position: sticky para permitir rolagem em todas as telas */
 .summary-panel { 
-    position: sticky; 
-    top: 20px; 
-    max-height: calc(100vh - 40px); 
-    overflow-y: auto; 
+    position: relative; /* Mudando para relative para que ele flua com o documento */
+    top: 0;
+    max-height: none; /* Removendo o limite de altura para que ele se ajuste ao conteúdo */
+    overflow-y: auto; /* Mantendo a barra de rolagem se o conteúdo interno for muito grande */
 }
 
 /* Custom scrollbar for summary panel */
@@ -59,6 +60,7 @@ body {
 .status-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
 
+/* Removendo a media query pois a regra principal já foi alterada */
 @media (max-width: 1024px) {
     .summary-panel { 
         position: relative; 
